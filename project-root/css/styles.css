@@ -1,0 +1,88 @@
+body {
+    margin: 0;
+    font-family: 'Segoe UI', sans-serif;
+    background: #f5ecdf;
+    color: #3b2d1f;
+}
+
+.sidebar {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 200px;
+    height: 100%;
+    background: #dfd5c5;
+    padding-top: 40px;
+    border-right: 1px solid #ccc;
+}
+
+.sidebar ul {
+    list-style: none;
+    padding: 0;
+}
+
+.sidebar ul li {
+    padding: 15px 20px;
+}
+
+.sidebar ul li a {
+    text-decoration: none;
+    color: #3b2d1f;
+    font-size: 16px;
+    display: block;
+}
+
+.sidebar ul li a:hover {
+    background: #c5b8a0;
+    border-radius: 8px;
+}
+
+.main-content {
+    margin-left: 200px;
+    padding: 40px;
+    text-align: center;
+}
+
+.top-right {
+    text-align: right;
+}
+
+.login-btn {
+    padding: 10px 15px;
+    background-color: #a17747;
+    color: white;
+    text-decoration: none;
+    border-radius: 6px;
+}
+
+.login-btn:hover {
+    background-color: #815f33;
+}
+
+.hero h1 {
+    font-size: 48px;
+    margin: 0;
+}
+
+.hero h2 {
+    font-size: 24px;
+    margin: 10px 0;
+}
+
+.hero p {
+    font-size: 16px;
+    margin: 10px 0 30px;
+}
+
+.get-started {
+    padding: 12px 24px;
+    background-color: #a17747;
+    color: white;
+    text-decoration: none;
+    border-radius: 6px;
+    font-weight: bold;
+}
+
+.get-started:hover {
+    background-color: #815f33;
+}

@@ -1,0 +1,6 @@
+@import url('styles.css');
+
+.main-content h1 {
+    margin-top: 20px;
+    font-size: 36px;
+}
