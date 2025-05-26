@@ -1,0 +1,150 @@
+import React from 'react';
+import { Routes, Route, Navigate } from 'react-router-dom';
+import { ThemeProvider, CssBaseline } from '@mui/material';
+import theme from './theme';
+import TermsAndConditions from './pages/TermsAndConditions';
+import AdminVerification from './pages/AdminVerification';
+import Register from './pages/Register';
+import Login from './pages/Login';
+import Dashboard from './pages/Dashboard';
+import Products from './pages/Products';
+import ProductDetails from './pages/ProductDetails';
+import Cart from './pages/Cart';
+import Checkout from './pages/Checkout';
+import TradeProposals from './pages/TradeProposals';
+import MyItems from './pages/MyItems';
+import Profile from './pages/Profile';
+import Messages from './pages/Messages';
+import FindUsers from './pages/FindUsers';
+import Layout from './components/Layout';
+import { CartProvider } from './context/CartContext';
+import { TradeProvider } from './context/TradeContext';
+import { AuthProvider, useAuth } from './context/AuthContext';
+import { MessageProvider } from './context/MessageContext';
+
+// Protected Route component
+const ProtectedRoute: React.FC<{ element: React.ReactElement; requireAdmin?: boolean }> = ({ 
+  element, 
+  requireAdmin = false 
+}) => {
+  const { isAuthenticated, isAdmin } = useAuth();
+
+  if (!isAuthenticated) {
+    return <Navigate to="/login" replace />;
+  }
+
+  if (requireAdmin && !isAdmin) {
+    return <Navigate to="/dashboard" replace />;
+  }
+
+  return element;
+};
+
+const App: React.FC = () => {
+  return (
+    <ThemeProvider theme={theme}>
+      <CssBaseline />
+      <AuthProvider>
+        <MessageProvider>
+          <CartProvider>
+            <TradeProvider>
+              <Routes>
+                {/* Public routes */}
+                <Route path="/register" element={<Register />} />
+                <Route path="/login" element={<Login />} />
+                <Route path="/terms" element={<TermsAndConditions />} />
+                
+                {/* Protected routes with Layout */}
+                <Route path="/dashboard" element={
+                  <ProtectedRoute element={
+                    <Layout>
+                      <Dashboard />
+                    </Layout>
+                  } />
+                } />
+                
+                <Route path="/products" element={
+                  <ProtectedRoute element={
+                    <Layout>
+                      <Products />
+                    </Layout>
+                  } />
+                } />
+                
+                <Route path="/products/:id" element={
+                  <ProtectedRoute element={
+                    <Layout>
+                      <ProductDetails />
+                    </Layout>
+                  } />
+                } />
+                
+                <Route path="/cart" element={
+                  <ProtectedRoute element={
+                    <Layout>
+                      <Cart />
+                    </Layout>
+                  } />
+                } />
+                
+                <Route path="/checkout" element={
+                  <ProtectedRoute element={
+                    <Layout>
+                      <Checkout />
+                    </Layout>
+                  } />
+                } />
+
+                <Route path="/trades" element={
+                  <ProtectedRoute element={
+                    <Layout>
+                      <TradeProposals />
+                    </Layout>
+                  } />
+                } />
+
+                <Route path="/messages" element={
+                  <ProtectedRoute element={
+                    <Layout>
+                      <Messages />
+                    </Layout>
+                  } />
+                } />
+
+                <Route path="/find-users" element={
+                  <ProtectedRoute element={
+                    <Layout>
+                      <FindUsers />
+                    </Layout>
+                  } />
+                } />
+
+                <Route path="/profile" element={
+                  <ProtectedRoute element={
+                    <Layout>
+                      <Profile />
+                    </Layout>
+                  } />
+                } />
+
+                {/* Admin routes */}
+                <Route path="/admin/verification" element={
+                  <ProtectedRoute element={
+                    <Layout>
+                      <AdminVerification />
+                    </Layout>
+                  } requireAdmin={true} />
+                } />
+
+                {/* Default route */}
+                <Route path="/" element={<Navigate to="/dashboard" replace />} />
+              </Routes>
+            </TradeProvider>
+          </CartProvider>
+        </MessageProvider>
+      </AuthProvider>
+    </ThemeProvider>
+  );
+};
+
+export default App; 
