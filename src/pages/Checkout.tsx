@@ -229,7 +229,7 @@ const Checkout: React.FC = () => {
                   <Grid item xs={8}>
                     <Typography variant="subtitle1">{item.title}</Typography>
                     <Typography variant="body2" color="text.secondary">
-                      Seller: {item.seller.name}
+                      {item.seller ? `Seller: ${item.seller.name}` : 'No seller information'}
                     </Typography>
                   </Grid>
                   <Grid item xs={4} textAlign="right">

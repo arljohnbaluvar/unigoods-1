@@ -12,7 +12,8 @@ interface AuthContextType {
   user: User | null;
   isAuthenticated: boolean;
   isAdmin: boolean;
-  login: (email: string, password: string) => Promise<boolean>;
+  login: (email: string, password: string) => Promise<void>;
+  register: (formData: { name: string; email: string; password: string; university: string }) => Promise<void>;
   logout: () => void;
 }
 
@@ -34,36 +35,40 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [user, setUser] = useState<User | null>(null);
 
-  const login = async (email: string, password: string): Promise<boolean> => {
-    // Check for admin credentials
-    if (email === ADMIN_CREDENTIALS.email && password === ADMIN_CREDENTIALS.password) {
-      setUser(ADMIN_USER);
-      // Store admin session
-      localStorage.setItem('user', JSON.stringify(ADMIN_USER));
-      return true;
-    }
-
-    // TODO: Implement actual user authentication
-    // For now, allow any non-admin login for development
+  const login = async (email: string, password: string) => {
+    // Mock login logic
     if (email && password) {
-      const regularUser: User = {
-        id: 'user-' + Math.random().toString(36).substr(2, 9),
+      const mockUser: User = {
+        id: '1',
+        name: 'John Doe',
         email: email,
-        name: email.split('@')[0],
-        role: 'user',
-        university: 'Demo University',
+        university: 'Stanford University',
+        role: 'user' as const,
       };
-      setUser(regularUser);
-      localStorage.setItem('user', JSON.stringify(regularUser));
-      return true;
+      setUser(mockUser);
+    } else {
+      throw new Error('Invalid credentials');
     }
+  };
 
-    return false;
+  const register = async (formData: { name: string; email: string; password: string; university: string }) => {
+    // Mock registration logic
+    if (formData.email && formData.password) {
+      const mockUser: User = {
+        id: '1',
+        name: formData.name,
+        email: formData.email,
+        university: formData.university,
+        role: 'user' as const,
+      };
+      setUser(mockUser);
+    } else {
+      throw new Error('Invalid registration data');
+    }
   };
 
   const logout = () => {
     setUser(null);
-    localStorage.removeItem('user');
   };
 
   // Check for existing session on mount
@@ -81,6 +86,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         isAuthenticated: !!user,
         isAdmin: user?.role === 'admin',
         login,
+        register,
         logout,
       }}
     >

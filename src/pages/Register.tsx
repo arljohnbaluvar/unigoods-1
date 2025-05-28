@@ -1,249 +1,345 @@
 import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { Link as RouterLink, useNavigate } from 'react-router-dom';
 import {
   Container,
   Paper,
   Typography,
-  Box,
-  Stepper,
-  Step,
-  StepLabel,
-  Button,
   TextField,
+  Button,
+  Link,
+  Box,
   Grid,
+  useTheme,
+  alpha,
+  InputAdornment,
+  IconButton,
+  MenuItem,
 } from '@mui/material';
-import { Formik, Form } from 'formik';
-import * as Yup from 'yup';
-import TermsAndConditions from './TermsAndConditions';
-import IDVerification from '../components/IDVerification';
+import {
+  Email as EmailIcon,
+  Lock as LockIcon,
+  Person as PersonIcon,
+  School as SchoolIcon,
+  Visibility as VisibilityIcon,
+  VisibilityOff as VisibilityOffIcon,
+} from '@mui/icons-material';
+import { useAuth } from '../context/AuthContext';
+import { useSnackbar } from 'notistack';
+import Logo from '../components/Logo';
 
-interface UserFormData {
-  firstName: string;
-  lastName: string;
-  email: string;
-  password: string;
-  confirmPassword: string;
-  university: string;
-  studentId: string;
-}
-
-const initialValues: UserFormData = {
-  firstName: '',
-  lastName: '',
-  email: '',
-  password: '',
-  confirmPassword: '',
-  university: '',
-  studentId: '',
-};
-
-const validationSchema = Yup.object({
-  firstName: Yup.string().required('First name is required'),
-  lastName: Yup.string().required('Last name is required'),
-  email: Yup.string().email('Invalid email address').required('Email is required'),
-  password: Yup.string()
-    .min(8, 'Password must be at least 8 characters')
-    .required('Password is required'),
-  confirmPassword: Yup.string()
-    .oneOf([Yup.ref('password')], 'Passwords must match')
-    .required('Confirm password is required'),
-  university: Yup.string().required('University name is required'),
-  studentId: Yup.string().required('Student ID is required'),
-});
+const universities = [
+  'Stanford University',
+  'Harvard University',
+  'MIT',
+  'UC Berkeley',
+  'UCLA',
+  'Yale University',
+  'Princeton University',
+  'Columbia University',
+];
 
 const Register: React.FC = () => {
+  const [formData, setFormData] = useState({
+    name: '',
+    email: '',
+    password: '',
+    confirmPassword: '',
+    university: '',
+  });
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const navigate = useNavigate();
-  const [activeStep, setActiveStep] = useState(0);
-  const [termsAccepted, setTermsAccepted] = useState(false);
-  const [idSubmitted, setIdSubmitted] = useState(false);
+  const { register } = useAuth();
+  const { enqueueSnackbar } = useSnackbar();
+  const theme = useTheme();
 
-  const steps = ['Personal Information', 'Terms & Conditions', 'ID Verification'];
-
-  const handleNext = () => {
-    setActiveStep((prevStep) => prevStep + 1);
+  const handleChange = (prop: keyof typeof formData) => (
+    event: React.ChangeEvent<HTMLInputElement>
+  ) => {
+    setFormData({ ...formData, [prop]: event.target.value });
   };
 
-  const handleBack = () => {
-    setActiveStep((prevStep) => prevStep - 1);
-  };
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (formData.password !== formData.confirmPassword) {
+      enqueueSnackbar('Passwords do not match', { variant: 'error' });
+      return;
+    }
 
-  const handleTermsAccept = () => {
-    setTermsAccepted(true);
-    handleNext();
-  };
-
-  const handleIdSubmit = async (file: File) => {
-    // TODO: Implement actual file upload logic
-    console.log('ID submitted:', file);
-    setIdSubmitted(true);
-    // In a real application, you would upload the file to your server here
-  };
-
-  const handleSubmit = async (values: UserFormData) => {
-    // TODO: Implement actual registration logic
-    console.log('Form submitted:', values);
-    // Navigate to login page after successful registration
-    navigate('/login');
-  };
-
-  const renderStepContent = (step: number) => {
-    switch (step) {
-      case 0:
-        return (
-          <Formik
-            initialValues={initialValues}
-            validationSchema={validationSchema}
-            onSubmit={handleSubmit}
-          >
-            {({ errors, touched, handleChange, handleBlur, values }) => (
-              <Form>
-                <Grid container spacing={2}>
-                  <Grid item xs={12} sm={6}>
-                    <TextField
-                      fullWidth
-                      name="firstName"
-                      label="First Name"
-                      value={values.firstName}
-                      onChange={handleChange}
-                      onBlur={handleBlur}
-                      error={touched.firstName && Boolean(errors.firstName)}
-                      helperText={touched.firstName && errors.firstName}
-                    />
-                  </Grid>
-                  <Grid item xs={12} sm={6}>
-                    <TextField
-                      fullWidth
-                      name="lastName"
-                      label="Last Name"
-                      value={values.lastName}
-                      onChange={handleChange}
-                      onBlur={handleBlur}
-                      error={touched.lastName && Boolean(errors.lastName)}
-                      helperText={touched.lastName && errors.lastName}
-                    />
-                  </Grid>
-                  <Grid item xs={12}>
-                    <TextField
-                      fullWidth
-                      name="email"
-                      label="Email"
-                      type="email"
-                      value={values.email}
-                      onChange={handleChange}
-                      onBlur={handleBlur}
-                      error={touched.email && Boolean(errors.email)}
-                      helperText={touched.email && errors.email}
-                    />
-                  </Grid>
-                  <Grid item xs={12}>
-                    <TextField
-                      fullWidth
-                      name="password"
-                      label="Password"
-                      type="password"
-                      value={values.password}
-                      onChange={handleChange}
-                      onBlur={handleBlur}
-                      error={touched.password && Boolean(errors.password)}
-                      helperText={touched.password && errors.password}
-                    />
-                  </Grid>
-                  <Grid item xs={12}>
-                    <TextField
-                      fullWidth
-                      name="confirmPassword"
-                      label="Confirm Password"
-                      type="password"
-                      value={values.confirmPassword}
-                      onChange={handleChange}
-                      onBlur={handleBlur}
-                      error={touched.confirmPassword && Boolean(errors.confirmPassword)}
-                      helperText={touched.confirmPassword && errors.confirmPassword}
-                    />
-                  </Grid>
-                  <Grid item xs={12}>
-                    <TextField
-                      fullWidth
-                      name="university"
-                      label="University"
-                      value={values.university}
-                      onChange={handleChange}
-                      onBlur={handleBlur}
-                      error={touched.university && Boolean(errors.university)}
-                      helperText={touched.university && errors.university}
-                    />
-                  </Grid>
-                  <Grid item xs={12}>
-                    <TextField
-                      fullWidth
-                      name="studentId"
-                      label="Student ID"
-                      value={values.studentId}
-                      onChange={handleChange}
-                      onBlur={handleBlur}
-                      error={touched.studentId && Boolean(errors.studentId)}
-                      helperText={touched.studentId && errors.studentId}
-                    />
-                  </Grid>
-                </Grid>
-                <Box sx={{ mt: 2 }}>
-                  <Button
-                    variant="contained"
-                    color="primary"
-                    fullWidth
-                    onClick={handleNext}
-                  >
-                    Next
-                  </Button>
-                </Box>
-              </Form>
-            )}
-          </Formik>
-        );
-      case 1:
-        return <TermsAndConditions onAccept={handleTermsAccept} />;
-      case 2:
-        return <IDVerification onSubmit={handleIdSubmit} />;
-      default:
-        return null;
+    try {
+      await register(formData);
+      enqueueSnackbar('Successfully registered!', { variant: 'success' });
+      navigate('/dashboard');
+    } catch (error) {
+      enqueueSnackbar('Registration failed. Please try again.', { variant: 'error' });
     }
   };
 
   return (
-    <Container maxWidth="md">
-      <Paper elevation={3} sx={{ p: 4, my: 4 }}>
-        <Typography variant="h4" component="h1" gutterBottom align="center">
-          Create Account
-        </Typography>
-        
-        <Stepper activeStep={activeStep} sx={{ mb: 4 }}>
-          {steps.map((label) => (
-            <Step key={label}>
-              <StepLabel>{label}</StepLabel>
-            </Step>
-          ))}
-        </Stepper>
-
-        {renderStepContent(activeStep)}
-
-        <Box sx={{ mt: 2, display: 'flex', justifyContent: 'space-between' }}>
-          {activeStep > 0 && (
-            <Button onClick={handleBack}>
-              Back
-            </Button>
-          )}
-          {activeStep === steps.length - 1 && idSubmitted && (
-            <Button
-              variant="contained"
-              color="primary"
-              onClick={() => handleSubmit(initialValues)}
+    <Box
+      sx={{
+        minHeight: '100vh',
+        display: 'flex',
+        alignItems: 'center',
+        background: `linear-gradient(45deg, ${alpha(theme.palette.primary.main, 0.05)}, ${alpha(theme.palette.secondary.main, 0.05)})`,
+        py: 8,
+      }}
+    >
+      <Container maxWidth="sm">
+        <Paper
+          elevation={0}
+          sx={{
+            p: 4,
+            borderRadius: 4,
+            boxShadow: '0 4px 20px rgba(0, 0, 0, 0.08)',
+            border: `1px solid ${alpha(theme.palette.primary.main, 0.1)}`,
+          }}
+        >
+          <Box sx={{ textAlign: 'center', mb: 4 }}>
+            <Logo height={60} />
+            <Typography
+              variant="h4"
+              sx={{
+                mt: 2,
+                fontWeight: 700,
+                background: `linear-gradient(45deg, ${theme.palette.primary.main}, ${theme.palette.secondary.main})`,
+                backgroundClip: 'text',
+                WebkitBackgroundClip: 'text',
+                color: 'transparent',
+              }}
             >
-              Complete Registration
+              Create Account
+            </Typography>
+            <Typography variant="body1" color="text.secondary" sx={{ mt: 1 }}>
+              Join UniGoods and start trading with your university peers
+            </Typography>
+          </Box>
+
+          <form onSubmit={handleSubmit}>
+            <TextField
+              fullWidth
+              label="Full Name"
+              value={formData.name}
+              onChange={handleChange('name')}
+              margin="normal"
+              required
+              InputProps={{
+                startAdornment: (
+                  <InputAdornment position="start">
+                    <PersonIcon sx={{ color: 'text.secondary' }} />
+                  </InputAdornment>
+                ),
+              }}
+              sx={{
+                '& .MuiOutlinedInput-root': {
+                  borderRadius: 2,
+                  transition: 'all 0.2s ease-in-out',
+                  '&:hover': {
+                    backgroundColor: alpha(theme.palette.primary.main, 0.02),
+                  },
+                  '&.Mui-focused': {
+                    boxShadow: `0 0 0 2px ${alpha(theme.palette.primary.main, 0.2)}`,
+                  },
+                },
+              }}
+            />
+
+            <TextField
+              fullWidth
+              label="Email Address"
+              value={formData.email}
+              onChange={handleChange('email')}
+              margin="normal"
+              required
+              type="email"
+              InputProps={{
+                startAdornment: (
+                  <InputAdornment position="start">
+                    <EmailIcon sx={{ color: 'text.secondary' }} />
+                  </InputAdornment>
+                ),
+              }}
+              sx={{
+                '& .MuiOutlinedInput-root': {
+                  borderRadius: 2,
+                  transition: 'all 0.2s ease-in-out',
+                  '&:hover': {
+                    backgroundColor: alpha(theme.palette.primary.main, 0.02),
+                  },
+                  '&.Mui-focused': {
+                    boxShadow: `0 0 0 2px ${alpha(theme.palette.primary.main, 0.2)}`,
+                  },
+                },
+              }}
+            />
+
+            <TextField
+              select
+              fullWidth
+              label="University"
+              value={formData.university}
+              onChange={handleChange('university')}
+              margin="normal"
+              required
+              InputProps={{
+                startAdornment: (
+                  <InputAdornment position="start">
+                    <SchoolIcon sx={{ color: 'text.secondary' }} />
+                  </InputAdornment>
+                ),
+              }}
+              sx={{
+                '& .MuiOutlinedInput-root': {
+                  borderRadius: 2,
+                  transition: 'all 0.2s ease-in-out',
+                  '&:hover': {
+                    backgroundColor: alpha(theme.palette.primary.main, 0.02),
+                  },
+                  '&.Mui-focused': {
+                    boxShadow: `0 0 0 2px ${alpha(theme.palette.primary.main, 0.2)}`,
+                  },
+                },
+              }}
+            >
+              {universities.map((university) => (
+                <MenuItem key={university} value={university}>
+                  {university}
+                </MenuItem>
+              ))}
+            </TextField>
+
+            <TextField
+              fullWidth
+              label="Password"
+              value={formData.password}
+              onChange={handleChange('password')}
+              margin="normal"
+              required
+              type={showPassword ? 'text' : 'password'}
+              InputProps={{
+                startAdornment: (
+                  <InputAdornment position="start">
+                    <LockIcon sx={{ color: 'text.secondary' }} />
+                  </InputAdornment>
+                ),
+                endAdornment: (
+                  <InputAdornment position="end">
+                    <IconButton
+                      onClick={() => setShowPassword(!showPassword)}
+                      edge="end"
+                      sx={{
+                        color: theme.palette.text.secondary,
+                        '&:hover': {
+                          backgroundColor: alpha(theme.palette.primary.main, 0.1),
+                        },
+                      }}
+                    >
+                      {showPassword ? <VisibilityOffIcon /> : <VisibilityIcon />}
+                    </IconButton>
+                  </InputAdornment>
+                ),
+              }}
+              sx={{
+                '& .MuiOutlinedInput-root': {
+                  borderRadius: 2,
+                  transition: 'all 0.2s ease-in-out',
+                  '&:hover': {
+                    backgroundColor: alpha(theme.palette.primary.main, 0.02),
+                  },
+                  '&.Mui-focused': {
+                    boxShadow: `0 0 0 2px ${alpha(theme.palette.primary.main, 0.2)}`,
+                  },
+                },
+              }}
+            />
+
+            <TextField
+              fullWidth
+              label="Confirm Password"
+              value={formData.confirmPassword}
+              onChange={handleChange('confirmPassword')}
+              margin="normal"
+              required
+              type={showConfirmPassword ? 'text' : 'password'}
+              InputProps={{
+                startAdornment: (
+                  <InputAdornment position="start">
+                    <LockIcon sx={{ color: 'text.secondary' }} />
+                  </InputAdornment>
+                ),
+                endAdornment: (
+                  <InputAdornment position="end">
+                    <IconButton
+                      onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                      edge="end"
+                      sx={{
+                        color: theme.palette.text.secondary,
+                        '&:hover': {
+                          backgroundColor: alpha(theme.palette.primary.main, 0.1),
+                        },
+                      }}
+                    >
+                      {showConfirmPassword ? <VisibilityOffIcon /> : <VisibilityIcon />}
+                    </IconButton>
+                  </InputAdornment>
+                ),
+              }}
+              sx={{
+                '& .MuiOutlinedInput-root': {
+                  borderRadius: 2,
+                  transition: 'all 0.2s ease-in-out',
+                  '&:hover': {
+                    backgroundColor: alpha(theme.palette.primary.main, 0.02),
+                  },
+                  '&.Mui-focused': {
+                    boxShadow: `0 0 0 2px ${alpha(theme.palette.primary.main, 0.2)}`,
+                  },
+                },
+              }}
+            />
+
+            <Button
+              type="submit"
+              fullWidth
+              variant="contained"
+              sx={{
+                mt: 3,
+                mb: 2,
+                py: 1.5,
+                borderRadius: 2,
+                background: `linear-gradient(45deg, ${theme.palette.primary.main}, ${theme.palette.secondary.main})`,
+                transition: 'all 0.2s ease-in-out',
+                '&:hover': {
+                  transform: 'translateY(-1px)',
+                  boxShadow: theme.shadows[4],
+                  background: `linear-gradient(45deg, ${theme.palette.primary.dark}, ${theme.palette.secondary.dark})`,
+                },
+              }}
+            >
+              Create Account
             </Button>
-          )}
-        </Box>
-      </Paper>
-    </Container>
+
+            <Box sx={{ textAlign: 'center' }}>
+              <Link
+                component={RouterLink}
+                to="/login"
+                variant="body2"
+                sx={{
+                  color: theme.palette.text.secondary,
+                  textDecoration: 'none',
+                  '&:hover': {
+                    color: theme.palette.primary.main,
+                    textDecoration: 'underline',
+                  },
+                }}
+              >
+                Already have an account? Sign in
+              </Link>
+            </Box>
+          </form>
+        </Paper>
+      </Container>
+    </Box>
   );
 };
 

@@ -42,6 +42,7 @@ interface Product {
   category: string;
   imageUrl: string;
   seller: {
+    id: string;
     name: string;
     university: string;
     rating: number;
@@ -60,6 +61,7 @@ const mockProducts: Product[] = [
     category: 'Textbooks',
     imageUrl: 'https://via.placeholder.com/200x300',
     seller: {
+      id: '1',
       name: 'John Doe',
       university: 'State University',
       rating: 4.5,
@@ -75,6 +77,7 @@ const mockProducts: Product[] = [
     category: 'Electronics',
     imageUrl: 'https://via.placeholder.com/200x300',
     seller: {
+      id: '2',
       name: 'Sarah Smith',
       university: 'Tech Institute',
       rating: 4.8,
@@ -90,6 +93,7 @@ const mockProducts: Product[] = [
     category: 'Lab Equipment',
     imageUrl: 'https://via.placeholder.com/200x300',
     seller: {
+      id: '3',
       name: 'Mike Johnson',
       university: 'Science Academy',
       rating: 4.2,
@@ -105,6 +109,7 @@ const mockProducts: Product[] = [
     category: 'Notes',
     imageUrl: 'https://via.placeholder.com/200x300',
     seller: {
+      id: '4',
       name: 'Emily Brown',
       university: 'State University',
       rating: 4.7,
@@ -120,6 +125,7 @@ const mockProducts: Product[] = [
     category: 'Electronics',
     imageUrl: 'https://via.placeholder.com/200x300',
     seller: {
+      id: '5',
       name: 'Alex Chen',
       university: 'Tech Institute',
       rating: 4.9,
@@ -135,6 +141,7 @@ const mockProducts: Product[] = [
     category: 'Lab Equipment',
     imageUrl: 'https://via.placeholder.com/200x300',
     seller: {
+      id: '6',
       name: 'Lisa Wang',
       university: 'Medical University',
       rating: 4.6,
@@ -194,8 +201,10 @@ const Products: React.FC = () => {
       quantity: 1,
       imageUrl: product.imageUrl,
       seller: {
+        id: product.seller.id,
         name: product.seller.name,
         university: product.seller.university,
+        rating: product.seller.rating,
       },
     });
   };

@@ -11,11 +11,15 @@ import {
   ListItem,
   ListItemText,
   Chip,
+  useTheme,
+  alpha,
 } from '@mui/material';
 import { useAuth } from '../context/AuthContext';
+import StudentIdSubmission from '../components/StudentIdSubmission';
 
 const Profile: React.FC = () => {
   const { user } = useAuth();
+  const theme = useTheme();
 
   if (!user) {
     return null;
@@ -24,99 +28,111 @@ const Profile: React.FC = () => {
   return (
     <Container maxWidth="md">
       <Box sx={{ py: 4 }}>
-        <Paper elevation={3} sx={{ p: 4 }}>
-          <Grid container spacing={4}>
-            {/* Profile Header */}
-            <Grid item xs={12} display="flex" alignItems="center" gap={3}>
-              <Avatar
-                sx={{
-                  width: 100,
-                  height: 100,
-                  bgcolor: user.role === 'admin' ? 'secondary.main' : 'primary.main',
-                }}
-              >
-                {user.name.charAt(0).toUpperCase()}
-              </Avatar>
-              <Box>
-                <Typography variant="h4" gutterBottom>
-                  {user.name}
-                </Typography>
-                <Chip
-                  label={user.role === 'admin' ? 'Administrator' : 'User'}
-                  color={user.role === 'admin' ? 'secondary' : 'primary'}
-                  sx={{ mr: 1 }}
-                />
-                {user.university && (
-                  <Chip label={user.university} variant="outlined" />
-                )}
+        <Grid container spacing={3}>
+          {/* Profile Header */}
+          <Grid item xs={12}>
+            <Paper
+              elevation={0}
+              sx={{
+                p: 3,
+                borderRadius: 2,
+                border: `1px solid ${alpha(theme.palette.primary.main, 0.1)}`,
+              }}
+            >
+              <Box sx={{ display: 'flex', alignItems: 'center', gap: 3 }}>
+                <Avatar
+                  sx={{
+                    width: 100,
+                    height: 100,
+                    bgcolor: user.role === 'admin' ? 'secondary.main' : 'primary.main',
+                    fontSize: '2rem',
+                  }}
+                >
+                  {user.name.charAt(0).toUpperCase()}
+                </Avatar>
+                <Box>
+                  <Typography variant="h4" gutterBottom>
+                    {user.name}
+                  </Typography>
+                  <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap' }}>
+                    <Chip
+                      label={user.role === 'admin' ? 'Administrator' : 'Student'}
+                      color={user.role === 'admin' ? 'secondary' : 'primary'}
+                    />
+                    {user.university && (
+                      <Chip label={user.university} variant="outlined" />
+                    )}
+                  </Box>
+                </Box>
               </Box>
-            </Grid>
+            </Paper>
+          </Grid>
 
+          {/* Student ID Verification Section */}
+          {user.role !== 'admin' && (
             <Grid item xs={12}>
-              <Divider />
+              <StudentIdSubmission />
             </Grid>
+          )}
 
-            {/* Profile Details */}
-            <Grid item xs={12}>
+          {/* Profile Details */}
+          <Grid item xs={12}>
+            <Paper
+              elevation={0}
+              sx={{
+                borderRadius: 2,
+                border: `1px solid ${alpha(theme.palette.primary.main, 0.1)}`,
+              }}
+            >
               <List>
                 <ListItem>
                   <ListItemText
                     primary="Email"
                     secondary={user.email}
+                    primaryTypographyProps={{
+                      variant: 'subtitle2',
+                      color: 'text.secondary',
+                    }}
+                    secondaryTypographyProps={{
+                      variant: 'body1',
+                      color: 'text.primary',
+                    }}
                   />
                 </ListItem>
+                <Divider component="li" />
+                <ListItem>
+                  <ListItemText
+                    primary="University"
+                    secondary={user.university || 'Not specified'}
+                    primaryTypographyProps={{
+                      variant: 'subtitle2',
+                      color: 'text.secondary',
+                    }}
+                    secondaryTypographyProps={{
+                      variant: 'body1',
+                      color: 'text.primary',
+                    }}
+                  />
+                </ListItem>
+                <Divider component="li" />
                 <ListItem>
                   <ListItemText
                     primary="Account Type"
-                    secondary={user.role === 'admin' ? 'Administrator' : 'Regular User'}
+                    secondary={user.role === 'admin' ? 'Administrator' : 'Student'}
+                    primaryTypographyProps={{
+                      variant: 'subtitle2',
+                      color: 'text.secondary',
+                    }}
+                    secondaryTypographyProps={{
+                      variant: 'body1',
+                      color: 'text.primary',
+                    }}
                   />
                 </ListItem>
-                <ListItem>
-                  <ListItemText
-                    primary="Account ID"
-                    secondary={user.id}
-                  />
-                </ListItem>
-                {user.university && (
-                  <ListItem>
-                    <ListItemText
-                      primary="University"
-                      secondary={user.university}
-                    />
-                  </ListItem>
-                )}
               </List>
-            </Grid>
-
-            {/* Admin Section */}
-            {user.role === 'admin' && (
-              <>
-                <Grid item xs={12}>
-                  <Divider />
-                </Grid>
-                <Grid item xs={12}>
-                  <Typography variant="h6" gutterBottom>
-                    Administrative Access
-                  </Typography>
-                  <Typography variant="body2" color="text.secondary">
-                    As an administrator, you have access to:
-                  </Typography>
-                  <List>
-                    <ListItem>
-                      <ListItemText primary="• User Verification Management" />
-                    </ListItem>
-                    <ListItem>
-                      <ListItemText primary="• Product Moderation" />
-                    </ListItem>
-                    <ListItem>
-                      <ListItemText primary="• System Settings" />
-                    </ListItem>
-                  </List>
-                </Grid>
-              </>
-            )}
+            </Paper>
           </Grid>
-        </Paper>
+        </Grid>
       </Box>
     </Container>
   );

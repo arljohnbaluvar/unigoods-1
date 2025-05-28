@@ -115,7 +115,7 @@ const Cart: React.FC = () => {
                           {item.title}
                         </Typography>
                         <Typography variant="body2" color="text.secondary">
-                          Seller: {item.seller.name} ({item.seller.university})
+                          {item.seller ? `Seller: ${item.seller.name} (${item.seller.university})` : 'No seller information'}
                         </Typography>
                         <Typography variant="h6" color="primary" sx={{ mt: 2 }}>
                           ${item.price.toFixed(2)}
@@ -193,7 +193,7 @@ const Cart: React.FC = () => {
                             {item.title}
                           </Typography>
                           <Typography variant="body2" color="text.secondary">
-                            Seller: {item.seller.name} ({item.seller.university})
+                            {item.seller ? `Seller: ${item.seller.name} (${item.seller.university})` : 'No seller information'}
                           </Typography>
                           <Typography variant="h6" color="primary" sx={{ mt: 2 }}>
                             ${item.price.toFixed(2)}

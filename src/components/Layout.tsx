@@ -22,6 +22,7 @@ import {
   CardMedia,
   Badge,
   Avatar,
+  alpha,
 } from '@mui/material';
 import {
   Menu as MenuIcon,
@@ -34,13 +35,12 @@ import {
   Delete as DeleteIcon,
   AdminPanelSettings as AdminIcon,
   ShoppingCart as CartIcon,
-  Message as MessageIcon,
+  Contacts as ContactsIcon,
 } from '@mui/icons-material';
 import CartBadge from './CartBadge';
 import { useCart } from '../context/CartContext';
 import { useAuth } from '../context/AuthContext';
 import Logo from './Logo';
-import { useMessage } from '../context/MessageContext';
 
 const drawerWidth = 280;
 
@@ -57,7 +57,6 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
   const navigate = useNavigate();
   const { items, removeItem, getTotal } = useCart();
   const { logout, user } = useAuth();
-  const { getUnreadCount } = useMessage();
 
   const handleDrawerToggle = () => {
     setMobileOpen(!mobileOpen);
@@ -76,15 +75,7 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
     { text: 'Home', icon: <HomeIcon />, path: '/dashboard' },
     { text: 'Products', icon: <StoreIcon />, path: '/products' },
     { text: 'Trade', icon: <TradeIcon />, path: '/trades' },
-    { 
-      text: 'Messages', 
-      icon: (
-        <Badge badgeContent={getUnreadCount()} color="primary">
-          <MessageIcon />
-        </Badge>
-      ), 
-      path: '/messages' 
-    },
+    { text: 'Contacts', icon: <ContactsIcon />, path: '/contacts' },
     { text: 'Profile', icon: <ProfileIcon />, path: '/profile' },
   ];
 
@@ -100,26 +91,42 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
     <Box sx={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
       <Box
         sx={{
-          p: 2,
+          p: 3,
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'center',
-          borderBottom: 1,
-          borderColor: 'secondary.main',
-          height: 80,
+          background: `linear-gradient(45deg, ${alpha(theme.palette.primary.main, 0.05)}, ${alpha(theme.palette.secondary.main, 0.05)})`,
         }}
       >
-        <Logo height={60} />
+        <Logo height={50} />
       </Box>
       
       {user && (
-        <Box sx={{ p: 2, borderBottom: 1, borderColor: 'secondary.main' }}>
-          <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 1 }}>
-            <Avatar sx={{ bgcolor: 'primary.main' }}>
+        <Box sx={{ p: 3, borderBottom: 1, borderColor: 'divider' }}>
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+            <Avatar 
+              sx={{ 
+                width: 48, 
+                height: 48,
+                bgcolor: theme.palette.primary.main,
+                fontSize: '1.2rem',
+                fontWeight: 600,
+              }}
+            >
               {user.name.charAt(0).toUpperCase()}
             </Avatar>
             <Box>
-              <Typography variant="subtitle1" noWrap>
+              <Typography 
+                variant="subtitle1" 
+                noWrap
+                sx={{ 
+                  fontWeight: 600,
+                  background: `linear-gradient(45deg, ${theme.palette.primary.main}, ${theme.palette.secondary.main})`,
+                  backgroundClip: 'text',
+                  WebkitBackgroundClip: 'text',
+                  color: 'transparent',
+                }}
+              >
                 {user.name}
               </Typography>
               <Typography variant="body2" color="text.secondary" noWrap>
@@ -130,48 +137,95 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
         </Box>
       )}
 
-      <List sx={{ flexGrow: 1, pt: 2 }}>
-        {menuItems.map((item) => (
-          <ListItem
-            button
-            key={item.text}
-            component={Link}
-            to={item.path}
-            selected={location.pathname === item.path}
-            sx={{
-              mx: 1,
-              borderRadius: 1,
-              mb: 0.5,
-              '&.Mui-selected': {
-                bgcolor: 'secondary.light',
-                '&:hover': {
-                  bgcolor: 'secondary.light',
+      <List sx={{ flexGrow: 1, pt: 2, px: 2 }}>
+        {menuItems.map((item) => {
+          const isSelected = location.pathname === item.path;
+          return (
+            <ListItem
+              button
+              key={item.text}
+              component={Link}
+              to={item.path}
+              selected={isSelected}
+              sx={{
+                mb: 1,
+                borderRadius: 2,
+                overflow: 'hidden',
+                position: 'relative',
+                height: 48,
+                '&::before': {
+                  content: '""',
+                  position: 'absolute',
+                  left: 0,
+                  top: 0,
+                  height: '100%',
+                  width: isSelected ? '100%' : '0%',
+                  background: `linear-gradient(45deg, ${alpha(theme.palette.primary.main, 0.08)}, ${alpha(theme.palette.secondary.main, 0.08)})`,
+                  transition: 'width 0.3s ease-in-out',
                 },
-              },
-            }}
-          >
-            <ListItemIcon sx={{ color: 'primary.main', minWidth: 40 }}>
-              {item.icon}
-            </ListItemIcon>
-            <ListItemText 
-              primary={item.text}
-              primaryTypographyProps={{
-                fontSize: '0.9rem',
-                fontWeight: location.pathname === item.path ? 600 : 400,
+                '&:hover::before': {
+                  width: '100%',
+                },
+                '&.Mui-selected': {
+                  backgroundColor: 'transparent',
+                },
               }}
-            />
-          </ListItem>
-        ))}
+            >
+              <ListItemIcon 
+                sx={{ 
+                  minWidth: 40,
+                  color: isSelected ? theme.palette.primary.main : theme.palette.text.secondary,
+                  transition: 'color 0.2s ease-in-out',
+                }}
+              >
+                {item.icon}
+              </ListItemIcon>
+              <ListItemText 
+                primary={item.text}
+                primaryTypographyProps={{
+                  fontSize: '0.9rem',
+                  fontWeight: isSelected ? 600 : 500,
+                  color: isSelected ? theme.palette.primary.main : theme.palette.text.primary,
+                  sx: { transition: 'color 0.2s ease-in-out' },
+                }}
+              />
+              {isSelected && (
+                <Box
+                  sx={{
+                    position: 'absolute',
+                    right: 0,
+                    top: '50%',
+                    transform: 'translateY(-50%)',
+                    width: 4,
+                    height: 20,
+                    borderRadius: '4px 0 0 4px',
+                    background: `linear-gradient(45deg, ${theme.palette.primary.main}, ${theme.palette.secondary.main})`,
+                  }}
+                />
+              )}
+            </ListItem>
+          );
+        })}
       </List>
 
-      <Box sx={{ p: 2, borderTop: 1, borderColor: 'secondary.main' }}>
+      <Box sx={{ p: 2 }}>
         <Button
           fullWidth
           variant="outlined"
           color="primary"
           onClick={handleLogout}
           startIcon={<LogoutIcon />}
-          sx={{ borderRadius: 2 }}
+          sx={{
+            borderRadius: 2,
+            py: 1.2,
+            borderColor: alpha(theme.palette.primary.main, 0.2),
+            background: alpha(theme.palette.primary.main, 0.02),
+            '&:hover': {
+              borderColor: theme.palette.primary.main,
+              background: alpha(theme.palette.primary.main, 0.05),
+              transform: 'translateY(-1px)',
+            },
+          }}
         >
           Logout
         </Button>
@@ -194,12 +248,29 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
         display: 'flex', 
         justifyContent: 'space-between', 
         alignItems: 'center',
-        p: 2,
-        borderBottom: 1,
-        borderColor: 'secondary.main',
+        p: 3,
+        background: `linear-gradient(45deg, ${alpha(theme.palette.primary.main, 0.05)}, ${alpha(theme.palette.secondary.main, 0.05)})`,
       }}>
-        <Typography variant="h6" color="primary">Shopping Cart</Typography>
-        <IconButton onClick={() => toggleCartDrawer(false)}>
+        <Typography 
+          variant="h6" 
+          sx={{ 
+            fontWeight: 600,
+            background: `linear-gradient(45deg, ${theme.palette.primary.main}, ${theme.palette.secondary.main})`,
+            backgroundClip: 'text',
+            WebkitBackgroundClip: 'text',
+            color: 'transparent',
+          }}
+        >
+          Shopping Cart
+        </Typography>
+        <IconButton 
+          onClick={() => toggleCartDrawer(false)}
+          sx={{
+            '&:hover': {
+              background: alpha(theme.palette.primary.main, 0.1),
+            },
+          }}
+        >
           <CloseIcon />
         </IconButton>
       </Box>
@@ -210,9 +281,13 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
             height: '100%', 
             display: 'flex', 
             alignItems: 'center', 
-            justifyContent: 'center' 
+            justifyContent: 'center',
+            flexDirection: 'column',
+            gap: 2,
+            opacity: 0.7,
           }}>
-            <Typography color="text.secondary" align="center">
+            <CartIcon sx={{ fontSize: 48, color: 'text.secondary' }} />
+            <Typography color="text.secondary" variant="subtitle1">
               Your cart is empty
             </Typography>
           </Box>
@@ -222,7 +297,11 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
               key={item.id} 
               sx={{ 
                 mb: 2,
+                borderRadius: 2,
+                overflow: 'hidden',
+                transition: 'all 0.2s ease-in-out',
                 '&:hover': {
+                  transform: 'translateY(-2px)',
                   boxShadow: theme.shadows[4],
                 },
               }}
@@ -234,13 +313,16 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
                     width: 88, 
                     height: 88, 
                     objectFit: 'cover',
-                    borderRadius: '12px 0 0 12px',
                   }}
                   image={item.imageUrl}
                   alt={item.title}
                 />
                 <CardContent sx={{ flex: 1, p: 2 }}>
-                  <Typography variant="subtitle2" noWrap>
+                  <Typography 
+                    variant="subtitle2" 
+                    noWrap
+                    sx={{ fontWeight: 600 }}
+                  >
                     {item.title}
                   </Typography>
                   <Typography variant="body2" color="text.secondary">
@@ -254,17 +336,26 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
                       mt: 1,
                     }}
                   >
-                    <Typography variant="subtitle2" color="primary">
+                    <Typography 
+                      variant="subtitle2" 
+                      sx={{
+                        background: `linear-gradient(45deg, ${theme.palette.primary.main}, ${theme.palette.secondary.main})`,
+                        backgroundClip: 'text',
+                        WebkitBackgroundClip: 'text',
+                        color: 'transparent',
+                        fontWeight: 600,
+                      }}
+                    >
                       ${(item.price * item.quantity).toFixed(2)}
                     </Typography>
                     <IconButton
                       size="small"
-                      color="error"
                       onClick={() => removeItem(item.id)}
                       sx={{ 
+                        color: theme.palette.error.light,
                         '&:hover': { 
-                          bgcolor: 'error.light',
-                          color: 'error.contrastText',
+                          backgroundColor: alpha(theme.palette.error.main, 0.1),
+                          color: theme.palette.error.main,
                         },
                       }}
                     >
@@ -279,7 +370,7 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
       </Box>
 
       {items.length > 0 && (
-        <Box sx={{ p: 2, borderTop: 1, borderColor: 'secondary.main' }}>
+        <Box sx={{ p: 2, borderTop: 1, borderColor: 'divider' }}>
           <Box
             sx={{
               display: 'flex',
@@ -287,8 +378,19 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
               mb: 2,
             }}
           >
-            <Typography variant="subtitle1">Total:</Typography>
-            <Typography variant="subtitle1" color="primary" fontWeight="600">
+            <Typography variant="subtitle1" fontWeight={500}>
+              Total:
+            </Typography>
+            <Typography 
+              variant="subtitle1" 
+              sx={{
+                background: `linear-gradient(45deg, ${theme.palette.primary.main}, ${theme.palette.secondary.main})`,
+                backgroundClip: 'text',
+                WebkitBackgroundClip: 'text',
+                color: 'transparent',
+                fontWeight: 600,
+              }}
+            >
               ${getTotal().toFixed(2)}
             </Typography>
           </Box>
@@ -299,7 +401,14 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
               toggleCartDrawer(false);
               navigate('/cart');
             }}
-            sx={{ borderRadius: 2 }}
+            sx={{
+              borderRadius: 2,
+              py: 1.2,
+              background: `linear-gradient(45deg, ${theme.palette.primary.main}, ${theme.palette.secondary.main})`,
+              '&:hover': {
+                background: `linear-gradient(45deg, ${theme.palette.primary.dark}, ${theme.palette.secondary.dark})`,
+              },
+            }}
           >
             View Cart & Checkout
           </Button>
@@ -319,21 +428,34 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
           ml: { sm: `${drawerWidth}px` },
           bgcolor: 'background.paper',
           borderBottom: 1,
-          borderColor: 'secondary.main',
+          borderColor: 'divider',
         }}
       >
-        <Toolbar>
+        <Toolbar sx={{ height: 70 }}>
           <IconButton
-            color="primary"
+            color="inherit"
             aria-label="open drawer"
             edge="start"
             onClick={handleDrawerToggle}
-            sx={{ mr: 2, display: { sm: 'none' } }}
+            sx={{ 
+              mr: 2, 
+              display: { sm: 'none' },
+              color: theme.palette.text.primary,
+            }}
           >
             <MenuIcon />
           </IconButton>
           <Box sx={{ display: { xs: 'none', sm: 'block' }, flexGrow: 1 }}>
-            <Typography variant="h6" color="text.primary">
+            <Typography 
+              variant="h6" 
+              sx={{ 
+                fontWeight: 600,
+                background: `linear-gradient(45deg, ${theme.palette.primary.main}, ${theme.palette.secondary.main})`,
+                backgroundClip: 'text',
+                WebkitBackgroundClip: 'text',
+                color: 'transparent',
+              }}
+            >
               {menuItems.find((item) => item.path === location.pathname)?.text ||
                 'UniGoods'}
             </Typography>
@@ -342,15 +464,28 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
             <Logo height={40} />
           </Box>
           <IconButton 
-            color="primary"
             onClick={() => toggleCartDrawer(true)}
             sx={{ 
-              mr: 1,
-              '&:hover': { bgcolor: 'secondary.light' },
+              borderRadius: 2,
+              width: 40,
+              height: 40,
+              transition: 'all 0.2s ease-in-out',
+              '&:hover': {
+                transform: 'translateY(-1px)',
+                backgroundColor: alpha(theme.palette.primary.main, 0.1),
+              },
             }}
           >
-            <Badge badgeContent={items.length} color="secondary">
-              <CartIcon />
+            <Badge 
+              badgeContent={items.length} 
+              color="primary"
+              sx={{
+                '& .MuiBadge-badge': {
+                  background: `linear-gradient(45deg, ${theme.palette.primary.main}, ${theme.palette.secondary.main})`,
+                },
+              }}
+            >
+              <CartIcon sx={{ color: theme.palette.text.primary }} />
             </Badge>
           </IconButton>
         </Toolbar>
@@ -372,6 +507,8 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
             '& .MuiDrawer-paper': {
               boxSizing: 'border-box',
               width: drawerWidth,
+              borderRight: 'none',
+              boxShadow: '1px 0 8px rgba(0, 0, 0, 0.1)',
             },
           }}
         >
@@ -384,6 +521,8 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
             '& .MuiDrawer-paper': {
               boxSizing: 'border-box',
               width: drawerWidth,
+              borderRight: 'none',
+              boxShadow: '1px 0 8px rgba(0, 0, 0, 0.1)',
             },
           }}
         >
@@ -408,6 +547,11 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
         open={cartDrawerOpen}
         onClose={() => toggleCartDrawer(false)}
         onOpen={() => toggleCartDrawer(true)}
+        PaperProps={{
+          sx: {
+            boxShadow: '-1px 0 8px rgba(0, 0, 0, 0.1)',
+          },
+        }}
       >
         {cartDrawer}
       </SwipeableDrawer>
@@ -415,4 +559,4 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
   );
 };
 
-export default Layout; 
+export default Layout;

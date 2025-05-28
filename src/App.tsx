@@ -1,6 +1,7 @@
 import React from 'react';
 import { Routes, Route, Navigate } from 'react-router-dom';
 import { ThemeProvider, CssBaseline } from '@mui/material';
+import { SnackbarProvider } from 'notistack';
 import theme from './theme';
 import TermsAndConditions from './pages/TermsAndConditions';
 import AdminVerification from './pages/AdminVerification';
@@ -14,13 +15,13 @@ import Checkout from './pages/Checkout';
 import TradeProposals from './pages/TradeProposals';
 import MyItems from './pages/MyItems';
 import Profile from './pages/Profile';
-import Messages from './pages/Messages';
-import FindUsers from './pages/FindUsers';
+import Contacts from './pages/Contacts';
 import Layout from './components/Layout';
 import { CartProvider } from './context/CartContext';
 import { TradeProvider } from './context/TradeContext';
 import { AuthProvider, useAuth } from './context/AuthContext';
-import { MessageProvider } from './context/MessageContext';
+import { ContactProvider } from './context/ContactContext';
+import { VerificationProvider } from './context/VerificationContext';
 
 // Protected Route component
 const ProtectedRoute: React.FC<{ element: React.ReactElement; requireAdmin?: boolean }> = ({ 
@@ -44,105 +45,101 @@ const App: React.FC = () => {
   return (
     <ThemeProvider theme={theme}>
       <CssBaseline />
-      <AuthProvider>
-        <MessageProvider>
-          <CartProvider>
-            <TradeProvider>
-              <Routes>
-                {/* Public routes */}
-                <Route path="/register" element={<Register />} />
-                <Route path="/login" element={<Login />} />
-                <Route path="/terms" element={<TermsAndConditions />} />
-                
-                {/* Protected routes with Layout */}
-                <Route path="/dashboard" element={
-                  <ProtectedRoute element={
-                    <Layout>
-                      <Dashboard />
-                    </Layout>
-                  } />
-                } />
-                
-                <Route path="/products" element={
-                  <ProtectedRoute element={
-                    <Layout>
-                      <Products />
-                    </Layout>
-                  } />
-                } />
-                
-                <Route path="/products/:id" element={
-                  <ProtectedRoute element={
-                    <Layout>
-                      <ProductDetails />
-                    </Layout>
-                  } />
-                } />
-                
-                <Route path="/cart" element={
-                  <ProtectedRoute element={
-                    <Layout>
-                      <Cart />
-                    </Layout>
-                  } />
-                } />
-                
-                <Route path="/checkout" element={
-                  <ProtectedRoute element={
-                    <Layout>
-                      <Checkout />
-                    </Layout>
-                  } />
-                } />
+      <SnackbarProvider maxSnack={3}>
+        <AuthProvider>
+          <VerificationProvider>
+            <ContactProvider>
+              <CartProvider>
+                <TradeProvider>
+                  <Routes>
+                    {/* Public routes */}
+                    <Route path="/register" element={<Register />} />
+                    <Route path="/login" element={<Login />} />
+                    <Route path="/terms" element={<TermsAndConditions />} />
+                    
+                    {/* Protected routes with Layout */}
+                    <Route path="/dashboard" element={
+                      <ProtectedRoute element={
+                        <Layout>
+                          <Dashboard />
+                        </Layout>
+                      } />
+                    } />
+                    
+                    <Route path="/products" element={
+                      <ProtectedRoute element={
+                        <Layout>
+                          <Products />
+                        </Layout>
+                      } />
+                    } />
+                    
+                    <Route path="/products/:id" element={
+                      <ProtectedRoute element={
+                        <Layout>
+                          <ProductDetails />
+                        </Layout>
+                      } />
+                    } />
+                    
+                    <Route path="/cart" element={
+                      <ProtectedRoute element={
+                        <Layout>
+                          <Cart />
+                        </Layout>
+                      } />
+                    } />
+                    
+                    <Route path="/checkout" element={
+                      <ProtectedRoute element={
+                        <Layout>
+                          <Checkout />
+                        </Layout>
+                      } />
+                    } />
 
-                <Route path="/trades" element={
-                  <ProtectedRoute element={
-                    <Layout>
-                      <TradeProposals />
-                    </Layout>
-                  } />
-                } />
+                    <Route path="/trades" element={
+                      <ProtectedRoute element={
+                        <Layout>
+                          <TradeProposals />
+                        </Layout>
+                      } />
+                    } />
 
-                <Route path="/messages" element={
-                  <ProtectedRoute element={
-                    <Layout>
-                      <Messages />
-                    </Layout>
-                  } />
-                } />
+                    <Route path="/contacts" element={
+                      <ProtectedRoute element={
+                        <Layout>
+                          <Contacts />
+                        </Layout>
+                      } />
+                    } />
 
-                <Route path="/find-users" element={
-                  <ProtectedRoute element={
-                    <Layout>
-                      <FindUsers />
-                    </Layout>
-                  } />
-                } />
+                    <Route path="/profile" element={
+                      <ProtectedRoute element={
+                        <Layout>
+                          <Profile />
+                        </Layout>
+                      } />
+                    } />
 
-                <Route path="/profile" element={
-                  <ProtectedRoute element={
-                    <Layout>
-                      <Profile />
-                    </Layout>
-                  } />
-                } />
+                    {/* Admin routes */}
+                    <Route path="/admin/verification" element={
+                      <ProtectedRoute element={
+                        <Layout>
+                          <AdminVerification />
+                        </Layout>
+                      } requireAdmin={true} />
+                    } />
 
-                {/* Admin routes */}
-                <Route path="/admin/verification" element={
-                  <ProtectedRoute element={
-                    <Layout>
-                      <AdminVerification />
-                    </Layout>
-                  } requireAdmin={true} />
-                } />
-
-                {/* Default route */}
-                <Route path="/" element={<Navigate to="/dashboard" replace />} />
-              </Routes>
-            </TradeProvider>
-          </CartProvider>
-        </MessageProvider>
-      </AuthProvider>
+                    {/* Default route */}
+                    <Route path="/" element={<Navigate to="/dashboard" replace />} />
+                  </Routes>
+                </TradeProvider>
+              </CartProvider>
+            </ContactProvider>
+          </VerificationProvider>
+        </AuthProvider>
+      </SnackbarProvider>
     </ThemeProvider>
   );
 };
