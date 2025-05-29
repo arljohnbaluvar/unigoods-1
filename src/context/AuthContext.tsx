@@ -15,6 +15,7 @@ interface AuthContextType {
   login: (email: string, password: string) => Promise<void>;
   register: (formData: { name: string; email: string; password: string; university: string }) => Promise<void>;
   logout: () => void;
+  updateProfile: (data: { name?: string; university?: string }) => Promise<void>;
 }
 
 // Hardcoded admin credentials
@@ -33,19 +34,30 @@ const ADMIN_USER: User = {
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const [user, setUser] = useState<User | null>(null);
+  const [user, setUser] = useState<User | null>(() => {
+    const storedUser = localStorage.getItem('user');
+    return storedUser ? JSON.parse(storedUser) : null;
+  });
 
   const login = async (email: string, password: string) => {
-    // Mock login logic
+    // Check for admin credentials
+    if (email === ADMIN_CREDENTIALS.email && password === ADMIN_CREDENTIALS.password) {
+      setUser(ADMIN_USER);
+      localStorage.setItem('user', JSON.stringify(ADMIN_USER));
+      return;
+    }
+
+    // Regular user login logic
     if (email && password) {
       const mockUser: User = {
         id: '1',
-        name: 'John Doe',
+        name: email === 'arljohn.baluvar@gmail.com' ? 'Arljohn Baluvar' : 'John Doe',
         email: email,
-        university: 'Stanford University',
-        role: 'user' as const,
+        university: 'STI College Tagum',
+        role: 'user',
       };
       setUser(mockUser);
+      localStorage.setItem('user', JSON.stringify(mockUser));
     } else {
       throw new Error('Invalid credentials');
     }
@@ -59,25 +71,33 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         name: formData.name,
         email: formData.email,
         university: formData.university,
-        role: 'user' as const,
+        role: 'user',
       };
       setUser(mockUser);
+      localStorage.setItem('user', JSON.stringify(mockUser));
     } else {
       throw new Error('Invalid registration data');
     }
   };
 
-  const logout = () => {
-    setUser(null);
+  const updateProfile = async (data: { name?: string; university?: string }) => {
+    if (!user) {
+      throw new Error('No user logged in');
+    }
+
+    const updatedUser = {
+      ...user,
+      ...data,
+    };
+
+    setUser(updatedUser);
+    localStorage.setItem('user', JSON.stringify(updatedUser));
   };
 
-  // Check for existing session on mount
-  React.useEffect(() => {
-    const storedUser = localStorage.getItem('user');
-    if (storedUser) {
-      setUser(JSON.parse(storedUser));
-    }
-  }, []);
+  const logout = () => {
+    setUser(null);
+    localStorage.removeItem('user');
+  };
 
   return (
     <AuthContext.Provider
@@ -88,6 +108,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         login,
         register,
         logout,
+        updateProfile,
       }}
     >
       {children}

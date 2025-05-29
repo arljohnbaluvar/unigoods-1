@@ -118,7 +118,7 @@ const Cart: React.FC = () => {
                           {item.seller ? `Seller: ${item.seller.name} (${item.seller.university})` : 'No seller information'}
                         </Typography>
                         <Typography variant="h6" color="primary" sx={{ mt: 2 }}>
-                          ${item.price.toFixed(2)}
+                          ₱{item.price.toLocaleString('en-PH', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                         </Typography>
                         <Box
                           sx={{
@@ -196,7 +196,7 @@ const Cart: React.FC = () => {
                             {item.seller ? `Seller: ${item.seller.name} (${item.seller.university})` : 'No seller information'}
                           </Typography>
                           <Typography variant="h6" color="primary" sx={{ mt: 2 }}>
-                            ${item.price.toFixed(2)}
+                            ₱{item.price.toLocaleString('en-PH', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                           </Typography>
                           <Box
                             sx={{

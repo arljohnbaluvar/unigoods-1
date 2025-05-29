@@ -56,14 +56,14 @@ const mockProducts: Product[] = [
     id: '1',
     title: 'Calculus Textbook - 10th Edition',
     description: 'Like new condition, barely used. All pages intact. Perfect for Calculus I and II courses.',
-    price: 45.99,
+    price: 2499.00, // ~PHP 2,499
     condition: 'Like New',
     category: 'Textbooks',
-    imageUrl: 'https://via.placeholder.com/200x300',
+    imageUrl: 'https://m.media-amazon.com/images/I/71tjzI11bEL._AC_UF1000,1000_QL80_.jpg',
     seller: {
       id: '1',
       name: 'John Doe',
-      university: 'State University',
+      university: 'STI College Tagum',
       rating: 4.5,
     },
     stock: 1,
@@ -72,14 +72,14 @@ const mockProducts: Product[] = [
     id: '2',
     title: 'TI-84 Plus Graphing Calculator',
     description: 'Essential calculator for math and science courses. Includes new batteries and manual.',
-    price: 75.00,
+    price: 3999.00, // ~PHP 3,999
     condition: 'Good',
     category: 'Electronics',
-    imageUrl: 'https://via.placeholder.com/200x300',
+    imageUrl: 'https://m.media-amazon.com/images/I/71eDdUXFDGL._AC_UF894,1000_QL80_.jpg',
     seller: {
       id: '2',
       name: 'Sarah Smith',
-      university: 'Tech Institute',
+      university: 'STI College Tagum',
       rating: 4.8,
     },
     stock: 2,
@@ -88,14 +88,14 @@ const mockProducts: Product[] = [
     id: '3',
     title: 'Chemistry Lab Kit',
     description: 'Complete lab kit for General Chemistry. Includes glassware, safety equipment, and storage case.',
-    price: 120.00,
+    price: 5999.00, // ~PHP 5,999
     condition: 'New',
     category: 'Lab Equipment',
-    imageUrl: 'https://via.placeholder.com/200x300',
+    imageUrl: 'https://m.media-amazon.com/images/I/81tc3KiGIFL._AC_UF1000,1000_QL80_.jpg',
     seller: {
       id: '3',
       name: 'Mike Johnson',
-      university: 'Science Academy',
+      university: 'STI College Tagum',
       rating: 4.2,
     },
     stock: 3,
@@ -104,14 +104,14 @@ const mockProducts: Product[] = [
     id: '4',
     title: 'Physics Study Notes Bundle',
     description: 'Comprehensive study notes for Physics I & II. Includes practice problems and solutions.',
-    price: 25.00,
+    price: 1299.00, // ~PHP 1,299
     condition: 'Good',
     category: 'Notes',
-    imageUrl: 'https://via.placeholder.com/200x300',
+    imageUrl: 'https://img.freepik.com/premium-vector/physics-subject-notebook-cover_1308-86794.jpg',
     seller: {
       id: '4',
       name: 'Emily Brown',
-      university: 'State University',
+      university: 'STI College Tagum',
       rating: 4.7,
     },
     stock: 5,
@@ -329,7 +329,7 @@ const Products: React.FC = () => {
                 <h3 className="product-title">{product.title}</h3>
                 <p className="product-description">{product.description}</p>
                 <Typography variant="h6" color="primary" gutterBottom>
-                  ${product.price.toFixed(2)}
+                  ₱{product.price.toLocaleString('en-PH', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                 </Typography>
                 <div className="product-meta">
                   <span className={`product-condition condition-${product.condition.toLowerCase().replace(' ', '-')}`}>

@@ -13,7 +13,6 @@ import {
   alpha,
   InputAdornment,
   IconButton,
-  MenuItem,
 } from '@mui/material';
 import {
   Email as EmailIcon,
@@ -27,24 +26,13 @@ import { useAuth } from '../context/AuthContext';
 import { useSnackbar } from 'notistack';
 import Logo from '../components/Logo';
 
-const universities = [
-  'Stanford University',
-  'Harvard University',
-  'MIT',
-  'UC Berkeley',
-  'UCLA',
-  'Yale University',
-  'Princeton University',
-  'Columbia University',
-];
-
 const Register: React.FC = () => {
   const [formData, setFormData] = useState({
     name: '',
     email: '',
     password: '',
     confirmPassword: '',
-    university: '',
+    university: 'STI College Tagum', // Set default university
   });
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
@@ -111,7 +99,7 @@ const Register: React.FC = () => {
               Create Account
             </Typography>
             <Typography variant="body1" color="text.secondary" sx={{ mt: 1 }}>
-              Join UniGoods and start trading with your university peers
+              Join UniGoods and start trading with your STI College Tagum peers
             </Typography>
           </Box>
 
@@ -146,12 +134,12 @@ const Register: React.FC = () => {
 
             <TextField
               fullWidth
-              label="Email Address"
+              label="Email"
+              type="email"
               value={formData.email}
               onChange={handleChange('email')}
               margin="normal"
               required
-              type="email"
               InputProps={{
                 startAdornment: (
                   <InputAdornment position="start">
@@ -174,48 +162,13 @@ const Register: React.FC = () => {
             />
 
             <TextField
-              select
-              fullWidth
-              label="University"
-              value={formData.university}
-              onChange={handleChange('university')}
-              margin="normal"
-              required
-              InputProps={{
-                startAdornment: (
-                  <InputAdornment position="start">
-                    <SchoolIcon sx={{ color: 'text.secondary' }} />
-                  </InputAdornment>
-                ),
-              }}
-              sx={{
-                '& .MuiOutlinedInput-root': {
-                  borderRadius: 2,
-                  transition: 'all 0.2s ease-in-out',
-                  '&:hover': {
-                    backgroundColor: alpha(theme.palette.primary.main, 0.02),
-                  },
-                  '&.Mui-focused': {
-                    boxShadow: `0 0 0 2px ${alpha(theme.palette.primary.main, 0.2)}`,
-                  },
-                },
-              }}
-            >
-              {universities.map((university) => (
-                <MenuItem key={university} value={university}>
-                  {university}
-                </MenuItem>
-              ))}
-            </TextField>
-
-            <TextField
               fullWidth
               label="Password"
+              type={showPassword ? 'text' : 'password'}
               value={formData.password}
               onChange={handleChange('password')}
               margin="normal"
               required
-              type={showPassword ? 'text' : 'password'}
               InputProps={{
                 startAdornment: (
                   <InputAdornment position="start">
@@ -227,12 +180,6 @@ const Register: React.FC = () => {
                     <IconButton
                       onClick={() => setShowPassword(!showPassword)}
                       edge="end"
-                      sx={{
-                        color: theme.palette.text.secondary,
-                        '&:hover': {
-                          backgroundColor: alpha(theme.palette.primary.main, 0.1),
-                        },
-                      }}
                     >
                       {showPassword ? <VisibilityOffIcon /> : <VisibilityIcon />}
                     </IconButton>
@@ -256,11 +203,11 @@ const Register: React.FC = () => {
             <TextField
               fullWidth
               label="Confirm Password"
+              type={showConfirmPassword ? 'text' : 'password'}
               value={formData.confirmPassword}
               onChange={handleChange('confirmPassword')}
               margin="normal"
               required
-              type={showConfirmPassword ? 'text' : 'password'}
               InputProps={{
                 startAdornment: (
                   <InputAdornment position="start">
@@ -272,15 +219,36 @@ const Register: React.FC = () => {
                     <IconButton
                       onClick={() => setShowConfirmPassword(!showConfirmPassword)}
                       edge="end"
-                      sx={{
-                        color: theme.palette.text.secondary,
-                        '&:hover': {
-                          backgroundColor: alpha(theme.palette.primary.main, 0.1),
-                        },
-                      }}
                     >
                       {showConfirmPassword ? <VisibilityOffIcon /> : <VisibilityIcon />}
                     </IconButton>
+                  </InputAdornment>
+                ),
+              }}
+              sx={{
+                '& .MuiOutlinedInput-root': {
+                  borderRadius: 2,
+                  transition: 'all 0.2s ease-in-out',
+                  '&:hover': {
+                    backgroundColor: alpha(theme.palette.primary.main, 0.02),
+                  },
+                  '&.Mui-focused': {
+                    boxShadow: `0 0 0 2px ${alpha(theme.palette.primary.main, 0.2)}`,
+                  },
+                },
+              }}
+            />
+
+            <TextField
+              fullWidth
+              label="University"
+              value={formData.university}
+              margin="normal"
+              disabled
+              InputProps={{
+                startAdornment: (
+                  <InputAdornment position="start">
+                    <SchoolIcon sx={{ color: 'text.secondary' }} />
                   </InputAdornment>
                 ),
               }}
@@ -305,15 +273,10 @@ const Register: React.FC = () => {
               sx={{
                 mt: 3,
                 mb: 2,
-                py: 1.5,
+                height: '48px',
                 borderRadius: 2,
-                background: `linear-gradient(45deg, ${theme.palette.primary.main}, ${theme.palette.secondary.main})`,
-                transition: 'all 0.2s ease-in-out',
-                '&:hover': {
-                  transform: 'translateY(-1px)',
-                  boxShadow: theme.shadows[4],
-                  background: `linear-gradient(45deg, ${theme.palette.primary.dark}, ${theme.palette.secondary.dark})`,
-                },
+                textTransform: 'none',
+                fontSize: '1rem',
               }}
             >
               Create Account
@@ -325,11 +288,10 @@ const Register: React.FC = () => {
                 to="/login"
                 variant="body2"
                 sx={{
-                  color: theme.palette.text.secondary,
+                  color: 'text.secondary',
                   textDecoration: 'none',
                   '&:hover': {
-                    color: theme.palette.primary.main,
-                    textDecoration: 'underline',
+                    color: 'primary.main',
                   },
                 }}
               >

@@ -1,9 +1,20 @@
-import React, { createContext, useContext, useState, useCallback } from 'react';
-import { VerificationRequest, User } from '../types';
+import React, { createContext, useContext, useState, useCallback, useEffect } from 'react';
 import { useAuth } from './AuthContext';
 import { useSnackbar } from 'notistack';
 
-type VerificationStatus = 'pending' | 'approved' | 'rejected';
+interface VerificationRequest {
+  id: string;
+  userId: string;
+  userName: string;
+  userEmail: string;
+  university: string;
+  studentIdUrl: string;
+  submittedAt: string;
+  status: 'pending' | 'approved' | 'rejected';
+  reviewedAt?: string;
+  reviewedBy?: string;
+  rejectionReason?: string;
+}
 
 interface AdminStats {
   total: number;
@@ -14,175 +25,181 @@ interface AdminStats {
 
 interface VerificationContextType {
   verificationRequests: VerificationRequest[];
-  submitVerification: (studentIdUrl: string) => Promise<void>;
+  submitVerification: (data: { university: string; studentIdFile: File }) => Promise<void>;
   approveVerification: (requestId: string) => Promise<void>;
   rejectVerification: (requestId: string, reason: string) => Promise<void>;
-  getUserVerificationStatus: () => VerificationStatus | undefined;
-  // Admin specific functions
+  getUserVerificationStatus: () => VerificationRequest | undefined;
   getAdminStats: () => AdminStats;
   getPendingRequests: () => VerificationRequest[];
-  getVerificationsByStatus: (status: VerificationStatus) => VerificationRequest[];
-  getVerificationsByUniversity: (university: string) => VerificationRequest[];
-  bulkApprove: (requestIds: string[]) => Promise<void>;
-  bulkReject: (requestIds: string[], reason: string) => Promise<void>;
-  searchRequests: (query: string) => VerificationRequest[];
+  getVerificationsByStatus: (status: 'pending' | 'approved' | 'rejected') => VerificationRequest[];
 }
 
 const VerificationContext = createContext<VerificationContextType | undefined>(undefined);
 
-export const useVerification = () => {
-  const context = useContext(VerificationContext);
-  if (!context) {
-    throw new Error('useVerification must be used within a VerificationProvider');
-  }
-  return context;
-};
-
 export const VerificationProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [verificationRequests, setVerificationRequests] = useState<VerificationRequest[]>([]);
-  const { user, isAdmin } = useAuth();
+  const { user } = useAuth();
   const { enqueueSnackbar } = useSnackbar();
 
-  const submitVerification = useCallback(async (studentIdUrl: string) => {
+  // Load verification requests from localStorage on mount
+  useEffect(() => {
+    const stored = localStorage.getItem('verificationRequests');
+    if (stored) {
+      try {
+        const parsed = JSON.parse(stored);
+        console.log('Loaded verification requests from localStorage:', parsed);
+        setVerificationRequests(Array.isArray(parsed) ? parsed : []);
+      } catch (error) {
+        console.error('Error parsing verification requests:', error);
+        localStorage.removeItem('verificationRequests');
+        setVerificationRequests([]);
+      }
+    } else {
+      console.log('No verification requests found in localStorage');
+      setVerificationRequests([]);
+    }
+  }, []);
+
+  // Helper function to update localStorage
+  const updateStorage = useCallback((requests: VerificationRequest[]) => {
+    console.log('Updating verification requests in storage:', requests);
+    // Ensure we're storing an array
+    const requestsArray = Array.isArray(requests) ? requests : [];
+    localStorage.setItem('verificationRequests', JSON.stringify(requestsArray));
+    setVerificationRequests(requestsArray);
+  }, []);
+
+  const submitVerification = useCallback(async ({ university, studentIdFile }: { university: string; studentIdFile: File }) => {
     if (!user) {
       throw new Error('User must be logged in to submit verification');
     }
+
+    console.log('=== Verification Submission Debug ===');
+    console.log('1. Starting submission process');
+    console.log('2. Current user:', user);
+    console.log('3. File being uploaded:', studentIdFile);
+
+    // Convert file to base64
+    const reader = new FileReader();
+    const studentIdUrl = await new Promise<string>((resolve, reject) => {
+      reader.onload = () => {
+        console.log('4. File converted to base64 successfully');
+        resolve(reader.result as string);
+      }
+      reader.onerror = () => reject(reader.error);
+      reader.readAsDataURL(studentIdFile);
+    });
 
     const newRequest: VerificationRequest = {
       id: Date.now().toString(),
       userId: user.id,
       userName: user.name,
-      university: user.university || '',
+      userEmail: user.email,
+      university,
       studentIdUrl,
       submittedAt: new Date().toISOString(),
       status: 'pending'
     };
 
-    setVerificationRequests(prev => [...prev, newRequest]);
+    console.log('5. Created new request:', newRequest);
+    console.log('6. Current requests in state:', verificationRequests);
+    
+    // Ensure we're working with arrays
+    const currentRequests = Array.isArray(verificationRequests) ? verificationRequests : [];
+    const updatedRequests = [...currentRequests, newRequest];
+    
+    console.log('7. Updated requests to save:', updatedRequests);
+    updateStorage(updatedRequests);
+    console.log('8. Storage updated');
+    console.log('9. Checking localStorage after update:', localStorage.getItem('verificationRequests'));
+    console.log('================================');
+    
     enqueueSnackbar('Verification request submitted successfully', { variant: 'success' });
-  }, [user, enqueueSnackbar]);
+  }, [user, verificationRequests, enqueueSnackbar, updateStorage]);
+
+  const getVerificationsByStatus = useCallback((status: 'pending' | 'approved' | 'rejected') => {
+    if (user?.role !== 'admin') {
+      throw new Error('Only admins can filter requests');
+    }
+    console.log('Getting verifications by status:', status);
+    console.log('Current verification requests:', verificationRequests);
+    // Ensure we're working with an array
+    const requestsArray = Array.isArray(verificationRequests) ? verificationRequests : [];
+    const filtered = requestsArray.filter(req => req.status === status);
+    console.log('Filtered requests:', filtered);
+    return filtered;
+  }, [user, verificationRequests]);
 
   const approveVerification = useCallback(async (requestId: string) => {
-    if (!isAdmin) {
+    if (user?.role !== 'admin') {
       throw new Error('Only admins can approve verifications');
     }
 
-    setVerificationRequests(prev =>
-      prev.map(request =>
-        request.id === requestId
-          ? {
-              ...request,
-              status: 'approved',
-              reviewedAt: new Date().toISOString(),
-              reviewedBy: user?.name
-            }
-          : request
-      )
+    const currentRequests = Array.isArray(verificationRequests) ? verificationRequests : [];
+    const updatedRequests = currentRequests.map(request =>
+      request.id === requestId
+        ? {
+            ...request,
+            status: 'approved' as const,
+            reviewedAt: new Date().toISOString(),
+            reviewedBy: user.name
+          }
+        : request
     );
+
+    updateStorage(updatedRequests);
     enqueueSnackbar('Verification request approved', { variant: 'success' });
-  }, [isAdmin, user, enqueueSnackbar]);
+  }, [user, verificationRequests, enqueueSnackbar, updateStorage]);
 
   const rejectVerification = useCallback(async (requestId: string, reason: string) => {
-    if (!isAdmin) {
+    if (user?.role !== 'admin') {
       throw new Error('Only admins can reject verifications');
     }
 
-    setVerificationRequests(prev =>
-      prev.map(request =>
-        request.id === requestId
-          ? {
-              ...request,
-              status: 'rejected',
-              reviewedAt: new Date().toISOString(),
-              reviewedBy: user?.name,
-              rejectionReason: reason
-            }
-          : request
-      )
+    const currentRequests = Array.isArray(verificationRequests) ? verificationRequests : [];
+    const updatedRequests = currentRequests.map(request =>
+      request.id === requestId
+        ? {
+            ...request,
+            status: 'rejected' as const,
+            reviewedAt: new Date().toISOString(),
+            reviewedBy: user.name,
+            rejectionReason: reason
+          }
+        : request
     );
-    enqueueSnackbar('Verification request rejected', { variant: 'error' });
-  }, [isAdmin, user, enqueueSnackbar]);
 
-  const getUserVerificationStatus = useCallback((): VerificationStatus | undefined => {
+    updateStorage(updatedRequests);
+    enqueueSnackbar('Verification request rejected', { variant: 'error' });
+  }, [user, verificationRequests, enqueueSnackbar, updateStorage]);
+
+  const getUserVerificationStatus = useCallback(() => {
     if (!user) return undefined;
-    const request = verificationRequests.find(req => req.userId === user.id);
-    return request?.status;
+    const requestsArray = Array.isArray(verificationRequests) ? verificationRequests : [];
+    return requestsArray.find(req => req.userId === user.id);
   }, [user, verificationRequests]);
 
-  // Admin specific functions
   const getAdminStats = useCallback((): AdminStats => {
-    if (!isAdmin) throw new Error('Only admins can access stats');
+    if (user?.role !== 'admin') {
+      throw new Error('Only admins can access stats');
+    }
     
+    const requestsArray = Array.isArray(verificationRequests) ? verificationRequests : [];
     return {
-      total: verificationRequests.length,
-      pending: verificationRequests.filter(req => req.status === 'pending').length,
-      approved: verificationRequests.filter(req => req.status === 'approved').length,
-      rejected: verificationRequests.filter(req => req.status === 'rejected').length,
+      total: requestsArray.length,
+      pending: requestsArray.filter(req => req.status === 'pending').length,
+      approved: requestsArray.filter(req => req.status === 'approved').length,
+      rejected: requestsArray.filter(req => req.status === 'rejected').length,
     };
-  }, [isAdmin, verificationRequests]);
+  }, [user, verificationRequests]);
 
-  const getPendingRequests = useCallback((): VerificationRequest[] => {
-    if (!isAdmin) throw new Error('Only admins can access pending requests');
-    return verificationRequests.filter(req => req.status === 'pending');
-  }, [isAdmin, verificationRequests]);
-
-  const getVerificationsByStatus = useCallback((status: VerificationStatus): VerificationRequest[] => {
-    if (!isAdmin) throw new Error('Only admins can filter requests');
-    return verificationRequests.filter(req => req.status === status);
-  }, [isAdmin, verificationRequests]);
-
-  const getVerificationsByUniversity = useCallback((university: string): VerificationRequest[] => {
-    if (!isAdmin) throw new Error('Only admins can filter by university');
-    return verificationRequests.filter(req => req.university.toLowerCase() === university.toLowerCase());
-  }, [isAdmin, verificationRequests]);
-
-  const bulkApprove = useCallback(async (requestIds: string[]) => {
-    if (!isAdmin) throw new Error('Only admins can perform bulk actions');
-
-    setVerificationRequests(prev =>
-      prev.map(request =>
-        requestIds.includes(request.id)
-          ? {
-              ...request,
-              status: 'approved',
-              reviewedAt: new Date().toISOString(),
-              reviewedBy: user?.name
-            }
-          : request
-      )
-    );
-    enqueueSnackbar(`${requestIds.length} requests approved successfully`, { variant: 'success' });
-  }, [isAdmin, user, enqueueSnackbar]);
-
-  const bulkReject = useCallback(async (requestIds: string[], reason: string) => {
-    if (!isAdmin) throw new Error('Only admins can perform bulk actions');
-
-    setVerificationRequests(prev =>
-      prev.map(request =>
-        requestIds.includes(request.id)
-          ? {
-              ...request,
-              status: 'rejected',
-              reviewedAt: new Date().toISOString(),
-              reviewedBy: user?.name,
-              rejectionReason: reason
-            }
-          : request
-      )
-    );
-    enqueueSnackbar(`${requestIds.length} requests rejected`, { variant: 'error' });
-  }, [isAdmin, user, enqueueSnackbar]);
-
-  const searchRequests = useCallback((query: string): VerificationRequest[] => {
-    if (!isAdmin) throw new Error('Only admins can search requests');
-    
-    const searchTerm = query.toLowerCase();
-    return verificationRequests.filter(req =>
-      req.userName.toLowerCase().includes(searchTerm) ||
-      req.university.toLowerCase().includes(searchTerm) ||
-      req.status.toLowerCase().includes(searchTerm)
-    );
-  }, [isAdmin, verificationRequests]);
+  const getPendingRequests = useCallback(() => {
+    if (user?.role !== 'admin') {
+      throw new Error('Only admins can access pending requests');
+    }
+    const requestsArray = Array.isArray(verificationRequests) ? verificationRequests : [];
+    return requestsArray.filter(req => req.status === 'pending');
+  }, [user, verificationRequests]);
 
   return (
     <VerificationContext.Provider
@@ -195,13 +212,17 @@ export const VerificationProvider: React.FC<{ children: React.ReactNode }> = ({ 
         getAdminStats,
         getPendingRequests,
         getVerificationsByStatus,
-        getVerificationsByUniversity,
-        bulkApprove,
-        bulkReject,
-        searchRequests
       }}
     >
       {children}
     </VerificationContext.Provider>
   );
+};
+
+export const useVerification = () => {
+  const context = useContext(VerificationContext);
+  if (context === undefined) {
+    throw new Error('useVerification must be used within a VerificationProvider');
+  }
+  return context;
 }; 

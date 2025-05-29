@@ -9,6 +9,8 @@ export interface User {
   studentIdUrl?: string;
 }
 
+export type VerificationStatus = 'pending' | 'approved' | 'rejected';
+
 export interface VerificationRequest {
   id: string;
   userId: string;
@@ -16,7 +18,7 @@ export interface VerificationRequest {
   university: string;
   studentIdUrl: string;
   submittedAt: string;
-  status: 'pending' | 'approved' | 'rejected';
+  status: VerificationStatus;
   reviewedAt?: string;
   reviewedBy?: string;
   rejectionReason?: string;

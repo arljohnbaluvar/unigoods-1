@@ -5,6 +5,7 @@ import { SnackbarProvider } from 'notistack';
 import theme from './theme';
 import TermsAndConditions from './pages/TermsAndConditions';
 import AdminVerification from './pages/AdminVerification';
+import UserVerification from './pages/UserVerification';
 import Register from './pages/Register';
 import Login from './pages/Login';
 import Dashboard from './pages/Dashboard';
@@ -19,27 +20,10 @@ import Contacts from './pages/Contacts';
 import Layout from './components/Layout';
 import { CartProvider } from './context/CartContext';
 import { TradeProvider } from './context/TradeContext';
-import { AuthProvider, useAuth } from './context/AuthContext';
+import { AuthProvider } from './context/AuthContext';
 import { ContactProvider } from './context/ContactContext';
 import { VerificationProvider } from './context/VerificationContext';
-
-// Protected Route component
-const ProtectedRoute: React.FC<{ element: React.ReactElement; requireAdmin?: boolean }> = ({ 
-  element, 
-  requireAdmin = false 
-}) => {
-  const { isAuthenticated, isAdmin } = useAuth();
-
-  if (!isAuthenticated) {
-    return <Navigate to="/login" replace />;
-  }
-
-  if (requireAdmin && !isAdmin) {
-    return <Navigate to="/dashboard" replace />;
-  }
-
-  return element;
-};
+import ProtectedRoute from './components/ProtectedRoute';
 
 const App: React.FC = () => {
   return (
@@ -123,13 +107,25 @@ const App: React.FC = () => {
                     } />
 
                     {/* Admin routes */}
-                    <Route path="/admin/verification" element={
-                      <ProtectedRoute element={
-                        <Layout>
-                          <AdminVerification />
-                        </Layout>
-                      } requireAdmin={true} />
-                    } />
+                    <Route
+                      path="/admin/verification"
+                      element={
+                        <ProtectedRoute
+                          element={
+                            <Layout>
+                              <AdminVerification />
+                            </Layout>
+                          }
+                          requireAdmin={true}
+                        />
+                      }
+                    />
+
+                    {/* User Verification route */}
+                    <Route
+                      path="/verification"
+                      element={<ProtectedRoute element={<UserVerification />} />}
+                    />
 
                     {/* Default route */}
                     <Route path="/" element={<Navigate to="/dashboard" replace />} />

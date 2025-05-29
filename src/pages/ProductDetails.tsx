@@ -231,7 +231,7 @@ const ProductDetails: React.FC = () => {
                       color: 'transparent',
                     }}
                   >
-                    ${product.price.toFixed(2)}
+                    ₱{product.price.toLocaleString('en-PH', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                   </Typography>
                 </Box>
 
