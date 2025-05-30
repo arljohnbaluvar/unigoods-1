@@ -136,7 +136,24 @@ const Checkout: React.FC = () => {
   };
 
   const handleConfirmOrder = () => {
-    // TODO: Implement actual order processing
+    // For cash payments, redirect to contacts page
+    if (paymentMethod === 'cash') {
+      clearCart();
+      navigate('/contacts', { 
+        state: { 
+          fromCashPayment: true,
+          items: items,
+          total: getTotal(),
+          meetupDetails: {
+            location: paymentDetails.cash.meetupLocation,
+            time: paymentDetails.cash.preferredTime
+          }
+        } 
+      });
+      return;
+    }
+
+    // For other payment methods
     clearCart();
     navigate('/dashboard', { state: { orderSuccess: true } });
   };
@@ -229,7 +246,7 @@ const Checkout: React.FC = () => {
                   <Grid item xs={8}>
                     <Typography variant="subtitle1">{item.title}</Typography>
                     <Typography variant="body2" color="text.secondary">
-                      {item.seller ? `Seller: ${item.seller.name}` : 'No seller information'}
+                      {item.seller ? `Seller: ${item.seller.name || 'Xian Dela Cruz'} (${item.seller.university || 'STI College Tagum'})` : 'Seller: Xian Dela Cruz (STI College Tagum)'}
                     </Typography>
                   </Grid>
                   <Grid item xs={4} textAlign="right">

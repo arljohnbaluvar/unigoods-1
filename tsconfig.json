@@ -18,16 +18,10 @@
     "resolveJsonModule": true,
     "isolatedModules": true,
     "noEmit": true,
-    "jsx": "react-jsx",
-    "baseUrl": "src",
-    "paths": {
-      "@mui/base": ["../node_modules/@mui/base"],
-      "@mui/material": ["../node_modules/@mui/material"],
-      "@mui/icons-material": ["../node_modules/@mui/icons-material"]
-    }
+    "jsx": "react-jsx"
   },
   "include": [
     "src"
   ],
   "exclude": ["node_modules"]
-} 
+}

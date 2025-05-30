@@ -1,27 +1,33 @@
 import React from 'react';
 import { Navigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
+import { CircularProgress, Box } from '@mui/material';
 
 interface ProtectedRouteProps {
-  element: React.ReactElement;
+  element: React.ReactNode;
   requireAdmin?: boolean;
 }
 
-const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
-  element,
-  requireAdmin = false,
-}) => {
-  const { user } = useAuth();
+const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ element, requireAdmin = false }) => {
+  const { user, loading } = useAuth();
+
+  if (loading) {
+    return (
+      <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh' }}>
+        <CircularProgress />
+      </Box>
+    );
+  }
 
   if (!user) {
     return <Navigate to="/login" replace />;
   }
 
   if (requireAdmin && user.role !== 'admin') {
-    return <Navigate to="/" replace />;
+    return <Navigate to="/dashboard" replace />;
   }
 
-  return element;
+  return <>{element}</>;
 };
 
 export default ProtectedRoute; 

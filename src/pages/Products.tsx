@@ -1,161 +1,41 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
   Container,
-  Grid,
-  Card,
-  CardContent,
-  CardMedia,
-  Typography,
   Box,
+  Typography,
   TextField,
   InputAdornment,
-  Select,
-  MenuItem,
   FormControl,
   InputLabel,
-  Chip,
+  Select,
+  MenuItem,
+  Grid,
+  Card,
+  CardMedia,
+  CardContent,
   Button,
-  CardActions,
-  Paper,
-  Divider,
   IconButton,
-  Tooltip,
+  Chip,
+  CircularProgress,
+  Alert,
+  Rating,
 } from '@mui/material';
-import {
-  Search as SearchIcon,
-  Favorite as FavoriteIcon,
-  FavoriteBorder as FavoriteBorderIcon,
-  FilterList as FilterIcon,
-  Sort as SortIcon,
-  ShoppingCart as CartIcon,
-} from '@mui/icons-material';
+import SearchIcon from '@mui/icons-material/Search';
+import FavoriteIcon from '@mui/icons-material/Favorite';
+import FavoriteBorderIcon from '@mui/icons-material/FavoriteBorder';
+import ShoppingCartIcon from '@mui/icons-material/ShoppingCart';
+import { useProducts } from '../context/ProductContext';
 import { useCart } from '../context/CartContext';
-import './products.css';
-
-interface Product {
-  id: string;
-  title: string;
-  description: string;
-  price: number;
-  condition: string;
-  category: string;
-  imageUrl: string;
-  seller: {
-    id: string;
-    name: string;
-    university: string;
-    rating: number;
-  };
-  stock: number;
-}
-
-// Mock data
-const mockProducts: Product[] = [
-  {
-    id: '1',
-    title: 'Calculus Textbook - 10th Edition',
-    description: 'Like new condition, barely used. All pages intact. Perfect for Calculus I and II courses.',
-    price: 2499.00, // ~PHP 2,499
-    condition: 'Like New',
-    category: 'Textbooks',
-    imageUrl: 'https://m.media-amazon.com/images/I/71tjzI11bEL._AC_UF1000,1000_QL80_.jpg',
-    seller: {
-      id: '1',
-      name: 'John Doe',
-      university: 'STI College Tagum',
-      rating: 4.5,
-    },
-    stock: 1,
-  },
-  {
-    id: '2',
-    title: 'TI-84 Plus Graphing Calculator',
-    description: 'Essential calculator for math and science courses. Includes new batteries and manual.',
-    price: 3999.00, // ~PHP 3,999
-    condition: 'Good',
-    category: 'Electronics',
-    imageUrl: 'https://m.media-amazon.com/images/I/71eDdUXFDGL._AC_UF894,1000_QL80_.jpg',
-    seller: {
-      id: '2',
-      name: 'Sarah Smith',
-      university: 'STI College Tagum',
-      rating: 4.8,
-    },
-    stock: 2,
-  },
-  {
-    id: '3',
-    title: 'Chemistry Lab Kit',
-    description: 'Complete lab kit for General Chemistry. Includes glassware, safety equipment, and storage case.',
-    price: 5999.00, // ~PHP 5,999
-    condition: 'New',
-    category: 'Lab Equipment',
-    imageUrl: 'https://m.media-amazon.com/images/I/81tc3KiGIFL._AC_UF1000,1000_QL80_.jpg',
-    seller: {
-      id: '3',
-      name: 'Mike Johnson',
-      university: 'STI College Tagum',
-      rating: 4.2,
-    },
-    stock: 3,
-  },
-  {
-    id: '4',
-    title: 'Physics Study Notes Bundle',
-    description: 'Comprehensive study notes for Physics I & II. Includes practice problems and solutions.',
-    price: 1299.00, // ~PHP 1,299
-    condition: 'Good',
-    category: 'Notes',
-    imageUrl: 'https://img.freepik.com/premium-vector/physics-subject-notebook-cover_1308-86794.jpg',
-    seller: {
-      id: '4',
-      name: 'Emily Brown',
-      university: 'STI College Tagum',
-      rating: 4.7,
-    },
-    stock: 5,
-  },
-  {
-    id: '5',
-    title: 'MacBook Pro 2021',
-    description: 'M1 Pro chip, 16GB RAM, 512GB SSD. Perfect for computer science students.',
-    price: 1299.99,
-    condition: 'Like New',
-    category: 'Electronics',
-    imageUrl: 'https://via.placeholder.com/200x300',
-    seller: {
-      id: '5',
-      name: 'Alex Chen',
-      university: 'Tech Institute',
-      rating: 4.9,
-    },
-    stock: 1,
-  },
-  {
-    id: '6',
-    title: 'Biology Lab Coat',
-    description: 'White lab coat, size M. Required for biology and chemistry labs.',
-    price: 29.99,
-    condition: 'New',
-    category: 'Lab Equipment',
-    imageUrl: 'https://via.placeholder.com/200x300',
-    seller: {
-      id: '6',
-      name: 'Lisa Wang',
-      university: 'Medical University',
-      rating: 4.6,
-    },
-    stock: 4,
-  },
-];
+import { useSnackbar } from 'notistack';
+import { Product } from '../context/ProductContext';
 
 const categories = [
   'All',
-  'Textbooks',
   'Electronics',
-  'Notes',
   'Lab Equipment',
+  'Textbooks',
+  'Notes',
   'Study Materials',
   'Other',
 ];
@@ -171,13 +51,27 @@ const sortOptions = [
 
 const Products: React.FC = () => {
   const navigate = useNavigate();
+  const { products, loading, error } = useProducts();
   const { addItem } = useCart();
+  const { enqueueSnackbar } = useSnackbar();
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('All');
   const [selectedCondition, setSelectedCondition] = useState('All');
   const [sortBy, setSortBy] = useState('newest');
   const [favorites, setFavorites] = useState<string[]>([]);
-  const [loading, setLoading] = useState(false);
+
+  // Load favorites from localStorage on mount
+  useEffect(() => {
+    const savedFavorites = localStorage.getItem('favorites');
+    if (savedFavorites) {
+      setFavorites(JSON.parse(savedFavorites));
+    }
+  }, []);
+
+  // Save favorites to localStorage when updated
+  useEffect(() => {
+    localStorage.setItem('favorites', JSON.stringify(favorites));
+  }, [favorites]);
 
   const handleProductClick = (productId: string) => {
     navigate(`/products/${productId}`);
@@ -192,8 +86,8 @@ const Products: React.FC = () => {
     );
   };
 
-  const handleAddToCart = (product: Product, event: React.MouseEvent) => {
-    event.stopPropagation();
+  const handleAddToCart = (product: any, e: React.MouseEvent) => {
+    e.stopPropagation();
     addItem({
       id: product.id,
       title: product.title,
@@ -204,12 +98,13 @@ const Products: React.FC = () => {
         id: product.seller.id,
         name: product.seller.name,
         university: product.seller.university,
-        rating: product.seller.rating,
-      },
+        rating: product.seller.rating
+      }
     });
+    enqueueSnackbar(`Added ${product.title} to cart`, { variant: 'success' });
   };
 
-  const filteredProducts = mockProducts
+  const filteredProducts = products
     .filter((product) => {
       const matchesSearch = product.title
         .toLowerCase()
@@ -233,27 +128,17 @@ const Products: React.FC = () => {
       }
     });
 
-  if (loading) {
-    return (
-      <div className="loading">
-        <div className="loading-spinner" />
-      </div>
-    );
-  }
-
   return (
-    <div className="products-container">
+    <Container maxWidth="xl" sx={{ py: 3 }}>
       <Typography variant="h4" gutterBottom>
         Browse Products
       </Typography>
 
-      <div className="search-bar">
+      <Box sx={{ mb: 4, display: 'flex', gap: 2 }}>
         <TextField
-          fullWidth
           placeholder="Search products..."
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
-          className="search-input"
           InputProps={{
             startAdornment: (
               <InputAdornment position="start">
@@ -261,8 +146,9 @@ const Products: React.FC = () => {
               </InputAdornment>
             ),
           }}
+          sx={{ flexGrow: 1 }}
         />
-        <FormControl className="category-filter">
+        <FormControl sx={{ minWidth: 120 }}>
           <InputLabel>Category</InputLabel>
           <Select
             value={selectedCategory}
@@ -276,7 +162,7 @@ const Products: React.FC = () => {
             ))}
           </Select>
         </FormControl>
-        <FormControl className="category-filter">
+        <FormControl sx={{ minWidth: 120 }}>
           <InputLabel>Condition</InputLabel>
           <Select
             value={selectedCondition}
@@ -290,7 +176,7 @@ const Products: React.FC = () => {
             ))}
           </Select>
         </FormControl>
-        <FormControl className="category-filter">
+        <FormControl sx={{ minWidth: 150 }}>
           <InputLabel>Sort By</InputLabel>
           <Select
             value={sortBy}
@@ -304,77 +190,146 @@ const Products: React.FC = () => {
             ))}
           </Select>
         </FormControl>
-      </div>
+      </Box>
 
-      {filteredProducts.length === 0 ? (
-        <div className="no-products">
-          <Typography variant="h6" color="textSecondary">
+      {loading ? (
+        <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '50vh' }}>
+          <CircularProgress />
+        </Box>
+      ) : error ? (
+        <Box sx={{ p: 2 }}>
+          <Alert severity="error" sx={{ mb: 2 }}>
+            {error}
+          </Alert>
+          <Button variant="contained" onClick={() => window.location.reload()}>
+            Retry
+          </Button>
+        </Box>
+      ) : filteredProducts.length === 0 ? (
+        <Box sx={{ 
+          display: 'flex', 
+          flexDirection: 'column', 
+          alignItems: 'center', 
+          justifyContent: 'center', 
+          height: '50vh',
+          gap: 2 
+        }}>
+          <Typography variant="h6" color="text.secondary">
             No products found matching your criteria
           </Typography>
-        </div>
-      ) : (
-        <div className="products-grid">
-          {filteredProducts.map((product) => (
-            <div
-              key={product.id}
-              className="product-card"
-              onClick={() => handleProductClick(product.id)}
+          {searchQuery || selectedCategory !== 'All' || selectedCondition !== 'All' ? (
+            <Button 
+              variant="outlined" 
+              onClick={() => {
+                setSearchQuery('');
+                setSelectedCategory('All');
+                setSelectedCondition('All');
+              }}
             >
-              <img
-                src={product.imageUrl}
-                alt={product.title}
-                className="product-image"
-              />
-              <div className="product-info">
-                <h3 className="product-title">{product.title}</h3>
-                <p className="product-description">{product.description}</p>
-                <Typography variant="h6" color="primary" gutterBottom>
-                  ₱{product.price.toLocaleString('en-PH', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-                </Typography>
-                <div className="product-meta">
-                  <span className={`product-condition condition-${product.condition.toLowerCase().replace(' ', '-')}`}>
-                    {product.condition}
-                  </span>
-                  <span className="product-owner">
-                    {product.seller.university}
-                  </span>
-                </div>
-                <Box sx={{ display: 'flex', justifyContent: 'space-between', mt: 2 }}>
-                  <IconButton
-                    size="small"
-                    onClick={(e) => toggleFavorite(product.id, e)}
+              Clear Filters
+            </Button>
+          ) : null}
+        </Box>
+      ) : (
+        <Grid container spacing={3}>
+          {filteredProducts.map((product) => (
+            <Grid item key={product.id} xs={12} sm={6} md={4} lg={3}>
+              <Card 
+                sx={{ 
+                  height: '100%',
+                  display: 'flex',
+                  flexDirection: 'column',
+                  cursor: 'pointer',
+                  transition: 'transform 0.2s, box-shadow 0.2s',
+                  '&:hover': {
+                    transform: 'translateY(-4px)',
+                    boxShadow: 4,
+                  },
+                }}
+                onClick={() => handleProductClick(product.id)}
+              >
+                <CardMedia
+                  component="img"
+                  height="200"
+                  image={product.imageUrl}
+                  alt={product.title}
+                  sx={{ objectFit: 'cover' }}
+                />
+                <CardContent sx={{ flexGrow: 1 }}>
+                  <Typography gutterBottom variant="h6" component="h2" noWrap>
+                    {product.title}
+                  </Typography>
+                  <Typography 
+                    color="text.secondary" 
+                    variant="body2" 
+                    sx={{
+                      overflow: 'hidden',
+                      textOverflow: 'ellipsis',
+                      display: '-webkit-box',
+                      WebkitLineClamp: 2,
+                      WebkitBoxOrient: 'vertical',
+                      mb: 2,
+                    }}
                   >
-                    {favorites.includes(product.id) ? (
-                      <FavoriteIcon color="error" />
-                    ) : (
-                      <FavoriteBorderIcon />
-                    )}
-                  </IconButton>
-                  <IconButton
-                    size="small"
-                    onClick={(e) => handleAddToCart(product, e)}
-                  >
-                    <CartIcon />
-                  </IconButton>
-                </Box>
-              </div>
-            </div>
+                    {product.description}
+                  </Typography>
+                  <Typography variant="h6" color="primary" gutterBottom>
+                    ₱{product.price.toLocaleString('en-PH', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                  </Typography>
+                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 1 }}>
+                    <Chip 
+                      label={product.condition}
+                      size="small"
+                      color={
+                        product.condition === 'New' ? 'success' :
+                        product.condition === 'Like New' ? 'info' :
+                        product.condition === 'Good' ? 'primary' :
+                        'default'
+                      }
+                    />
+                    <Typography variant="body2" color="text.secondary">
+                      {product.seller.university}
+                    </Typography>
+                  </Box>
+                  <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                    <Box sx={{ display: 'flex', gap: 1 }}>
+                      <IconButton
+                        size="small"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          toggleFavorite(product.id, e);
+                        }}
+                      >
+                        {favorites.includes(product.id) ? (
+                          <FavoriteIcon color="error" />
+                        ) : (
+                          <FavoriteBorderIcon />
+                        )}
+                      </IconButton>
+                      <IconButton
+                        size="small"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleAddToCart(product, e);
+                        }}
+                      >
+                        <ShoppingCartIcon />
+                      </IconButton>
+                    </Box>
+                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
+                      <Rating value={product.seller.rating} precision={0.1} size="small" readOnly />
+                      <Typography variant="body2" color="text.secondary">
+                        ({product.seller.rating})
+                      </Typography>
+                    </Box>
+                  </Box>
+                </CardContent>
+              </Card>
+            </Grid>
           ))}
-        </div>
+        </Grid>
       )}
-
-      {filteredProducts.length > 0 && (
-        <div className="pagination">
-          <button className="pagination-button" disabled>
-            Previous
-          </button>
-          <span className="pagination-info">Page 1 of 1</span>
-          <button className="pagination-button" disabled>
-            Next
-          </button>
-        </div>
-      )}
-    </div>
+    </Container>
   );
 };
 

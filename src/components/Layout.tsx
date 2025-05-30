@@ -36,11 +36,13 @@ import {
   AdminPanelSettings as AdminIcon,
   ShoppingCart as CartIcon,
   Contacts as ContactsIcon,
+  Add as AddIcon,
 } from '@mui/icons-material';
 import CartBadge from './CartBadge';
 import { useCart } from '../context/CartContext';
 import { useAuth } from '../context/AuthContext';
 import Logo from './Logo';
+import { useSnackbar } from 'notistack';
 
 const drawerWidth = 280;
 
@@ -57,6 +59,8 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
   const navigate = useNavigate();
   const { items, removeItem, getTotal } = useCart();
   const { logout, user } = useAuth();
+  const { enqueueSnackbar } = useSnackbar();
+  const isSmUp = useMediaQuery(theme.breakpoints.up('sm'));
 
   const handleDrawerToggle = () => {
     setMobileOpen(!mobileOpen);
@@ -71,9 +75,17 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
     navigate('/login');
   };
 
+  const handleRemoveItem = (itemId: string, itemTitle: string) => {
+    removeItem(itemId);
+    enqueueSnackbar(`Removed ${itemTitle} from cart`, { 
+      variant: 'success'
+    });
+  };
+
   const menuItems = [
     { text: 'Home', icon: <HomeIcon />, path: '/dashboard' },
     { text: 'Products', icon: <StoreIcon />, path: '/products' },
+    { text: 'Sell Product', icon: <AddIcon />, path: '/sell' },
     { text: 'Trade', icon: <TradeIcon />, path: '/trades' },
     { text: 'Contacts', icon: <ContactsIcon />, path: '/contacts' },
     { text: 'Profile', icon: <ProfileIcon />, path: '/profile' },
@@ -306,7 +318,7 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
                 },
               }}
             >
-              <Box sx={{ display: 'flex' }}>
+              <Box sx={{ display: 'flex', p: 1 }}>
                 <CardMedia
                   component="img"
                   sx={{ 
@@ -346,11 +358,11 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
                         fontWeight: 600,
                       }}
                     >
-                      ${(item.price * item.quantity).toFixed(2)}
+                      ₱{(item.price * item.quantity).toLocaleString('en-PH', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                     </Typography>
                     <IconButton
                       size="small"
-                      onClick={() => removeItem(item.id)}
+                      onClick={() => handleRemoveItem(item.id, item.title)}
                       sx={{ 
                         color: theme.palette.error.light,
                         '&:hover': { 
@@ -391,7 +403,7 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
                 fontWeight: 600,
               }}
             >
-              ${getTotal().toFixed(2)}
+              ₱{getTotal().toLocaleString('en-PH', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
             </Typography>
           </Box>
           <Button

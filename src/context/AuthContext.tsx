@@ -1,110 +1,144 @@
-import React, { createContext, useContext, useState } from 'react';
+import React, { createContext, useContext, useState, useCallback, useEffect } from 'react';
+import { useSnackbar } from 'notistack';
 
 interface User {
   id: string;
-  email: string;
   name: string;
-  role: 'admin' | 'user';
-  university?: string;
+  email: string;
+  university: string;
+  role: 'user' | 'admin';
+  isVerified: boolean;
 }
 
 interface AuthContextType {
   user: User | null;
-  isAuthenticated: boolean;
-  isAdmin: boolean;
+  loading: boolean;
+  error: string | null;
   login: (email: string, password: string) => Promise<void>;
-  register: (formData: { name: string; email: string; password: string; university: string }) => Promise<void>;
+  register: (data: { name: string; email: string; password: string; university: string }) => Promise<void>;
   logout: () => void;
-  updateProfile: (data: { name?: string; university?: string }) => Promise<void>;
+  updateProfile: (data: Partial<User>) => Promise<void>;
 }
-
-// Hardcoded admin credentials
-const ADMIN_CREDENTIALS = {
-  email: 'admin@unigoods.com',
-  password: 'admin123',
-};
-
-const ADMIN_USER: User = {
-  id: 'admin-1',
-  email: ADMIN_CREDENTIALS.email,
-  name: 'Admin User',
-  role: 'admin',
-};
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
+const STORAGE_KEY = 'unigoods_auth';
+
+// Mock admin user
+const mockAdmin: User = {
+  id: 'admin1',
+  name: 'Admin User',
+  email: 'admin@unigoods.com',
+  university: 'STI College Tagum',
+  role: 'admin',
+  isVerified: true,
+};
+
+// Mock regular user
+const mockUser: User = {
+  id: 'user1',
+  name: 'John Doe',
+  email: 'user@example.com',
+  university: 'STI College Tagum',
+  role: 'user',
+  isVerified: true,
+};
+
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const [user, setUser] = useState<User | null>(() => {
-    const storedUser = localStorage.getItem('user');
-    return storedUser ? JSON.parse(storedUser) : null;
-  });
+  const [user, setUser] = useState<User | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const { enqueueSnackbar } = useSnackbar();
 
-  const login = async (email: string, password: string) => {
-    // Check for admin credentials
-    if (email === ADMIN_CREDENTIALS.email && password === ADMIN_CREDENTIALS.password) {
-      setUser(ADMIN_USER);
-      localStorage.setItem('user', JSON.stringify(ADMIN_USER));
-      return;
+  // Load user from localStorage on mount
+  useEffect(() => {
+    const storedUser = localStorage.getItem(STORAGE_KEY);
+    if (storedUser) {
+      setUser(JSON.parse(storedUser));
     }
+    setLoading(false);
+  }, []);
 
-    // Regular user login logic
-    if (email && password) {
-      const mockUser: User = {
-        id: '1',
-        name: email === 'arljohn.baluvar@gmail.com' ? 'Arljohn Baluvar' : 'John Doe',
-        email: email,
-        university: 'STI College Tagum',
+  const login = useCallback(async (email: string, password: string) => {
+    try {
+      setLoading(true);
+      setError(null);
+
+      // Mock authentication
+      if (email === 'admin@unigoods.com' && password === 'admin123') {
+        setUser(mockAdmin);
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(mockAdmin));
+      } else if (email === 'user@example.com' && password === 'user123') {
+        setUser(mockUser);
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(mockUser));
+      } else {
+        throw new Error('Invalid credentials');
+      }
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'An error occurred');
+      throw err;
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  const register = useCallback(async (data: { name: string; email: string; password: string; university: string }) => {
+    try {
+      setLoading(true);
+      setError(null);
+
+      // Mock registration
+      const newUser: User = {
+        id: Math.random().toString(36).substr(2, 9),
+        name: data.name,
+        email: data.email,
+        university: data.university,
         role: 'user',
+        isVerified: false,
       };
-      setUser(mockUser);
-      localStorage.setItem('user', JSON.stringify(mockUser));
-    } else {
-      throw new Error('Invalid credentials');
+
+      setUser(newUser);
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(newUser));
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'An error occurred');
+      throw err;
+    } finally {
+      setLoading(false);
     }
-  };
+  }, []);
 
-  const register = async (formData: { name: string; email: string; password: string; university: string }) => {
-    // Mock registration logic
-    if (formData.email && formData.password) {
-      const mockUser: User = {
-        id: '1',
-        name: formData.name,
-        email: formData.email,
-        university: formData.university,
-        role: 'user',
-      };
-      setUser(mockUser);
-      localStorage.setItem('user', JSON.stringify(mockUser));
-    } else {
-      throw new Error('Invalid registration data');
-    }
-  };
-
-  const updateProfile = async (data: { name?: string; university?: string }) => {
-    if (!user) {
-      throw new Error('No user logged in');
-    }
-
-    const updatedUser = {
-      ...user,
-      ...data,
-    };
-
-    setUser(updatedUser);
-    localStorage.setItem('user', JSON.stringify(updatedUser));
-  };
-
-  const logout = () => {
+  const logout = useCallback(() => {
     setUser(null);
-    localStorage.removeItem('user');
-  };
+    localStorage.removeItem(STORAGE_KEY);
+    enqueueSnackbar('Successfully logged out', { variant: 'success' });
+  }, [enqueueSnackbar]);
+
+  const updateProfile = useCallback(async (data: Partial<User>) => {
+    try {
+      setLoading(true);
+      setError(null);
+
+      if (!user) {
+        throw new Error('No user logged in');
+      }
+
+      const updatedUser = { ...user, ...data };
+      setUser(updatedUser);
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(updatedUser));
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'An error occurred');
+      throw err;
+    } finally {
+      setLoading(false);
+    }
+  }, [user]);
 
   return (
     <AuthContext.Provider
       value={{
         user,
-        isAuthenticated: !!user,
-        isAdmin: user?.role === 'admin',
+        loading,
+        error,
         login,
         register,
         logout,

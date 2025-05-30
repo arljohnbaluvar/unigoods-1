@@ -33,6 +33,8 @@ interface NewItemForm {
   description: string;
   condition: string;
   imageUrl: string;
+  price: number;
+  category: string;
 }
 
 const initialFormState: NewItemForm = {
@@ -40,9 +42,12 @@ const initialFormState: NewItemForm = {
   description: '',
   condition: '',
   imageUrl: '',
+  price: 0,
+  category: '',
 };
 
 const conditions = ['New', 'Like New', 'Good', 'Fair'];
+const categories = ['Electronics', 'Books', 'Clothing', 'Accessories', 'Other'];
 
 const MyItems: React.FC = () => {
   const { userItems, addUserItem, removeUserItem } = useTradeContext();
@@ -57,6 +62,13 @@ const MyItems: React.FC = () => {
     setFormData((prev) => ({
       ...prev,
       [name]: value,
+    }));
+  };
+
+  const handleCategoryChange = (event: SelectChangeEvent<string>) => {
+    setFormData((prev) => ({
+      ...prev,
+      category: event.target.value,
     }));
   };
 
@@ -80,6 +92,14 @@ const MyItems: React.FC = () => {
       setError('Condition is required');
       return false;
     }
+    if (!formData.category) {
+      setError('Category is required');
+      return false;
+    }
+    if (formData.price <= 0) {
+      setError('Price must be greater than 0');
+      return false;
+    }
     if (!formData.imageUrl.trim()) {
       setError('Image URL is required');
       return false;
@@ -98,6 +118,7 @@ const MyItems: React.FC = () => {
         id: 'user1', // Replace with actual user ID
         name: 'John Doe', // Replace with actual user name
         university: 'State University', // Replace with actual university
+        rating: 4.5, // Default rating for new items
       },
     });
 
@@ -217,6 +238,33 @@ const MyItems: React.FC = () => {
               rows={4}
               margin="normal"
             />
+            <TextField
+              name="price"
+              label="Price"
+              type="number"
+              value={formData.price}
+              onChange={handleInputChange}
+              fullWidth
+              margin="normal"
+              InputProps={{
+                startAdornment: <Typography>₱</Typography>,
+              }}
+            />
+            <FormControl fullWidth margin="normal">
+              <InputLabel>Category</InputLabel>
+              <Select
+                name="category"
+                value={formData.category}
+                onChange={handleCategoryChange}
+                label="Category"
+              >
+                {categories.map((category) => (
+                  <MenuItem key={category} value={category}>
+                    {category}
+                  </MenuItem>
+                ))}
+              </Select>
+            </FormControl>
             <FormControl fullWidth margin="normal">
               <InputLabel>Condition</InputLabel>
               <Select

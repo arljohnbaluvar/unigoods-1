@@ -23,7 +23,9 @@ import { TradeProvider } from './context/TradeContext';
 import { AuthProvider } from './context/AuthContext';
 import { ContactProvider } from './context/ContactContext';
 import { VerificationProvider } from './context/VerificationContext';
+import { ProductProvider } from './context/ProductContext';
 import ProtectedRoute from './components/ProtectedRoute';
+import SellProduct from './pages/SellProduct';
 
 const App: React.FC = () => {
   return (
@@ -33,105 +35,115 @@ const App: React.FC = () => {
         <AuthProvider>
           <VerificationProvider>
             <ContactProvider>
-              <CartProvider>
-                <TradeProvider>
-                  <Routes>
-                    {/* Public routes */}
-                    <Route path="/register" element={<Register />} />
-                    <Route path="/login" element={<Login />} />
-                    <Route path="/terms" element={<TermsAndConditions />} />
-                    
-                    {/* Protected routes with Layout */}
-                    <Route path="/dashboard" element={
-                      <ProtectedRoute element={
-                        <Layout>
-                          <Dashboard />
-                        </Layout>
+              <ProductProvider>
+                <CartProvider>
+                  <TradeProvider>
+                    <Routes>
+                      {/* Public routes */}
+                      <Route path="/register" element={<Register />} />
+                      <Route path="/login" element={<Login />} />
+                      <Route path="/terms" element={<TermsAndConditions />} />
+                      
+                      {/* Protected routes with Layout */}
+                      <Route path="/dashboard" element={
+                        <ProtectedRoute element={
+                          <Layout>
+                            <Dashboard />
+                          </Layout>
+                        } />
                       } />
-                    } />
-                    
-                    <Route path="/products" element={
-                      <ProtectedRoute element={
-                        <Layout>
-                          <Products />
-                        </Layout>
+                      
+                      <Route path="/products" element={
+                        <ProtectedRoute element={
+                          <Layout>
+                            <Products />
+                          </Layout>
+                        } />
                       } />
-                    } />
-                    
-                    <Route path="/products/:id" element={
-                      <ProtectedRoute element={
-                        <Layout>
-                          <ProductDetails />
-                        </Layout>
+                      
+                      <Route path="/products/:id" element={
+                        <ProtectedRoute element={
+                          <Layout>
+                            <ProductDetails />
+                          </Layout>
+                        } />
                       } />
-                    } />
-                    
-                    <Route path="/cart" element={
-                      <ProtectedRoute element={
-                        <Layout>
-                          <Cart />
-                        </Layout>
+                      
+                      <Route path="/cart" element={
+                        <ProtectedRoute element={
+                          <Layout>
+                            <Cart />
+                          </Layout>
+                        } />
                       } />
-                    } />
-                    
-                    <Route path="/checkout" element={
-                      <ProtectedRoute element={
-                        <Layout>
-                          <Checkout />
-                        </Layout>
+                      
+                      <Route path="/checkout" element={
+                        <ProtectedRoute element={
+                          <Layout>
+                            <Checkout />
+                          </Layout>
+                        } />
                       } />
-                    } />
 
-                    <Route path="/trades" element={
-                      <ProtectedRoute element={
-                        <Layout>
-                          <TradeProposals />
-                        </Layout>
+                      <Route path="/trades" element={
+                        <ProtectedRoute element={
+                          <Layout>
+                            <TradeProposals />
+                          </Layout>
+                        } />
                       } />
-                    } />
 
-                    <Route path="/contacts" element={
-                      <ProtectedRoute element={
-                        <Layout>
-                          <Contacts />
-                        </Layout>
+                      <Route path="/contacts" element={
+                        <ProtectedRoute element={
+                          <Layout>
+                            <Contacts />
+                          </Layout>
+                        } />
                       } />
-                    } />
 
-                    <Route path="/profile" element={
-                      <ProtectedRoute element={
-                        <Layout>
-                          <Profile />
-                        </Layout>
+                      <Route path="/profile" element={
+                        <ProtectedRoute element={
+                          <Layout>
+                            <Profile />
+                          </Layout>
+                        } />
                       } />
-                    } />
 
-                    {/* Admin routes */}
-                    <Route
-                      path="/admin/verification"
-                      element={
-                        <ProtectedRoute
-                          element={
-                            <Layout>
-                              <AdminVerification />
-                            </Layout>
-                          }
-                          requireAdmin={true}
-                        />
-                      }
-                    />
+                      <Route path="/sell" element={
+                        <ProtectedRoute element={
+                          <Layout>
+                            <SellProduct />
+                          </Layout>
+                        } />
+                      } />
 
-                    {/* User Verification route */}
-                    <Route
-                      path="/verification"
-                      element={<ProtectedRoute element={<UserVerification />} />}
-                    />
+                      {/* Admin routes */}
+                      <Route
+                        path="/admin/verification"
+                        element={
+                          <ProtectedRoute
+                            element={
+                              <Layout>
+                                <AdminVerification />
+                              </Layout>
+                            }
+                            requireAdmin={true}
+                          />
+                        }
+                      />
 
-                    {/* Default route */}
-                    <Route path="/" element={<Navigate to="/dashboard" replace />} />
-                  </Routes>
-                </TradeProvider>
-              </CartProvider>
+                      {/* User Verification route */}
+                      <Route
+                        path="/verification"
+                        element={<ProtectedRoute element={<UserVerification />} />}
+                      />
+
+                      {/* Default route */}
+                      <Route path="/" element={<Navigate to="/dashboard" replace />} />
+                    </Routes>
+                  </TradeProvider>
+                </CartProvider>
+              </ProductProvider>
             </ContactProvider>
           </VerificationProvider>
         </AuthProvider>

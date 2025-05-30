@@ -89,19 +89,11 @@ const theme = createTheme({
         root: {
           borderRadius: 8,
           textTransform: 'none',
-          fontWeight: 600,
+          fontWeight: 500,
           boxShadow: 'none',
           '&:hover': {
-            boxShadow: '0 4px 12px rgba(139, 69, 19, 0.15)',
+            boxShadow: '0 2px 8px rgba(139, 69, 19, 0.15)',
             transform: 'translateY(-1px)',
-          },
-        },
-        contained: {
-          '&.MuiButton-containedPrimary': {
-            background: 'linear-gradient(45deg, #8B4513, #A0522D)',
-          },
-          '&.MuiButton-containedSecondary': {
-            background: 'linear-gradient(45deg, #DAA520, #FFD700)',
           },
         },
       },
@@ -117,13 +109,13 @@ const theme = createTheme({
     MuiCard: {
       styleOverrides: {
         root: {
-          borderRadius: 16,
-          border: '1px solid rgba(139, 69, 19, 0.1)',
+          borderRadius: 12,
+          boxShadow: '0 2px 12px rgba(139, 69, 19, 0.08)',
+          transition: 'all 0.2s ease-in-out',
           '&:hover': {
-            boxShadow: '0 4px 20px rgba(139, 69, 19, 0.15)',
-            transform: 'translateY(-2px)',
+            transform: 'translateY(-4px)',
+            boxShadow: '0 4px 20px rgba(139, 69, 19, 0.12)',
           },
-          transition: 'all 0.3s ease-in-out',
         },
       },
     },

@@ -1,22 +1,18 @@
-const { MongoClient } = require('mongodb')
+import { MongoClient, Db } from 'mongodb';
 
-let dbConnection: any
-let uri = 'mongodb+srv://hufflepuffcorn:cP9tUdcQRMMdkYhj@unigoods.vmuxq8x.mongodb.net/?retryWrites=true&w=majority&appName=unigoods'
+let dbConnection: Db | null = null;
+const uri = process.env.MONGODB_URI || 'mongodb+srv://hufflepuffcorn:cP9tUdcQRMMdkYhj@unigoods.vmuxq8x.mongodb.net/?retryWrites=true&w=majority&appName=unigoods';
 
-const MONGODB_URI = process.env.MONGODB_URI || 'mongodb+srv://hufflepuffcorn:cP9tUdcQRMMdkYhj@unigoods.vmuxq8x.mongodb.net/?retryWrites=true&w=majority&appName=unigoods';
-
-module.exports = {
-  connectToDB: (cb: any) => {
-    MongoClient.connect(uri)
-      .then((client: any) => {
-        dbConnection = client.db()
-        return cb()
-      })
-      .catch((err: any) => {
-        return cb(err)
-      })
-  },
-  getDB: () => {
-    return dbConnection
+export const connectToDB = async (cb: (err?: Error) => void): Promise<void> => {
+  try {
+    const client = await MongoClient.connect(uri);
+    dbConnection = client.db();
+    cb();
+  } catch (err) {
+    cb(err as Error);
   }
-}
+};
+
+export const getDB = (): Db | null => {
+  return dbConnection;
+};
